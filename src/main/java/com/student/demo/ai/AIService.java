@@ -33,32 +33,42 @@ public class AIService {
 
         RestTemplate restTemplate = new RestTemplate();
 
-        Map<String, Object> part = new HashMap<>();
-        part.put("text", prompt);
+        Map<String, Object> message = new HashMap<>();
+        message.put("role", "user");
+        message.put("content", prompt);
 
-        Map<String, Object> content = new HashMap<>();
-        content.put("parts", new Object[]{part});
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("model", "llama3-70b-8192");
+        requestBody.put("messages", new Object[]{message});
 
-        Map<String, Object> request = new HashMap<>();
-        request.put("contents", new Object[]{content});
+        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+        headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(apiKey);
 
-        String jsonResponse = restTemplate.postForObject(
-                apiUrl + "?key=" + apiKey,
-                request,
-                String.class
-        );
+        org.springframework.http.HttpEntity<Map<String, Object>> requestEntity = new org.springframework.http.HttpEntity<>(requestBody, headers);
+
+        String jsonResponse = "";
+        try {
+            jsonResponse = restTemplate.postForObject(
+                    apiUrl,
+                    requestEntity,
+                    String.class
+            );
+        } catch (Exception e) {
+            jsonResponse = "{\"error\":\"" + e.getMessage() + "\"}";
+        }
 
         String extractedText = "No review generated.";
         try {
             com.fasterxml.jackson.databind.JsonNode root = objectMapper.readTree(jsonResponse);
-            extractedText = root.path("candidates").get(0)
-                    .path("content").path("parts").get(0)
-                    .path("text").asText();
+            if (root.has("choices") && root.path("choices").isArray() && root.path("choices").size() > 0) {
+                extractedText = root.path("choices").get(0)
+                        .path("message").path("content").asText();
+            } else {
+                extractedText = "Error or unexpected format: " + jsonResponse;
+            }
         } catch (Exception e) {
-            // Fallback for simple parsing if structure is slightly different
-            extractedText = jsonResponse.contains("\"text\":") 
-                ? jsonResponse.split("\"text\":\\s*\"")[1].split("\"")[0].replace("\\n", "\n")
-                : "Error parsing AI response: " + e.getMessage() + "\nRaw response: " + jsonResponse;
+            extractedText = "Error parsing AI response: " + e.getMessage() + "\nRaw response: " + jsonResponse;
         }
 
         AIReport report = new AIReport();
