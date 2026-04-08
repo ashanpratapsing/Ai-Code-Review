@@ -31,16 +31,19 @@ public class JwtFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String path = request.getRequestURI();
-        System.out.println("Request Path: " + path);
 
-        // Allow auth endpoints without token
-        if (path.startsWith("/auth")) {
+        // Skip public endpoints
+        if (path.startsWith("/auth") ||
+            path.startsWith("/swagger-ui") ||
+            path.startsWith("/v3/api-docs") ||
+            path.equals("/") ||
+            path.startsWith("/test")) {
+
             filterChain.doFilter(request, response);
             return;
         }
 
         String header = request.getHeader("Authorization");
-        System.out.println("Authorization Header: " + header);
 
         if (header != null && header.startsWith("Bearer ")) {
 

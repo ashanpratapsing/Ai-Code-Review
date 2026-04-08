@@ -6,6 +6,7 @@ import com.student.demo.repository.CodeFileRepository;
 
 import java.util.List;
 
+import org.hibernate.boot.jaxb.JaxbLogger_.logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,8 +17,15 @@ public class CodeFileService {
     private CodeFileRepository codeFileRepository;
 
     public CodeFile saveFile(CodeFile codeFile) {
+        logger.info("Saving code file {}", codeFile.getFileName());
+
+        if (codeFile.getCodeContent() == null) {
+            throw new RuntimeException("Code content cannot be null");
+        }
+
         return codeFileRepository.save(codeFile);
     }
+    
     public List<CodeFileDTO> getAllFiles() {
         List<CodeFile> files = codeFileRepository.findAll();
 
