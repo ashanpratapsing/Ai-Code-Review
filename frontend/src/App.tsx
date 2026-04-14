@@ -1,121 +1,92 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { BrowserRouter, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { ToastProvider } from './context/ToastContext';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import CodeReview from './pages/CodeReview';
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import Projects from './pages/Projects';
+import { LayoutDashboard, Code, Folder, LogOut } from 'lucide-react';
 
-function App() {
-  const [count, setCount] = useState(0)
+const queryClient = new QueryClient();
+
+const AppLayout = ({ children }: { children: React.ReactNode }) => {
+  const { logout } = useAuth();
+  const location = useLocation();
+
+  const navItems = [
+    { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+    { name: 'Projects', path: '/projects', icon: Folder },
+    { name: 'Review IDE', path: '/', icon: Code },
+  ];
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
+    <div className="flex h-screen bg-[#0d1117] text-white overflow-hidden text-left">
+      <aside className="w-64 border-r border-[#30363d] bg-[#161b22] flex flex-col justify-between">
         <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
+          <div className="p-8 border-b border-[#30363d] mb-4">
+            <h1 className="text-xl font-black italic tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-400">
+              ANTIGRAVITY
+            </h1>
+          </div>
+          <nav className="p-4 space-y-1">
+            {navItems.map((item) => {
+              const isActive = location.pathname === item.path;
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                   className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
+                    isActive ? 'bg-blue-600/10 text-blue-400 border border-blue-500/20 shadow-lg shadow-blue-500/5' : 'text-gray-400 hover:bg-[#30363d] hover:text-white'
+                  }`}
+                >
+                  <item.icon className={`w-5 h-5 ${isActive ? 'text-blue-400' : 'group-hover:scale-110 transition-transform'}`} />
+                  <span className="font-bold tracking-tight text-sm uppercase">{item.name}</span>
+                </Link>
+              );
+            })}
+          </nav>
         </div>
-        <button
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+        <div className="p-4 border-t border-[#30363d]">
+          <button 
+            onClick={logout}
+            className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-gray-500 hover:bg-red-500/10 hover:text-red-400 transition-all font-bold text-sm uppercase"
+          >
+            <LogOut className="w-5 h-5" />
+            Sign Out
+          </button>
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+      </aside>
+      <main className="flex-1 flex flex-col overflow-hidden">
+        {children}
+      </main>
+    </div>
+  );
+};
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { token } = useAuth();
+  return token ? <AppLayout>{children}</AppLayout> : <Navigate to="/login" />;
+};
+
+export default function App() {
+  return (
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <ToastProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/" element={<ProtectedRoute><CodeReview /></ProtectedRoute>} />
+                <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
+              </Routes>
+            </BrowserRouter>
+          </ToastProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
+  );
 }
-
-export default App

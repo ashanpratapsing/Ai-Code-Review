@@ -4,11 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import api from '../services/api';
 import { Loader2 } from 'lucide-react';
+import { useToast } from '../context/ToastContext';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { login } = useAuth();
+  const { toast } = useToast();
   const navigate = useNavigate();
 
   const loginMutation = useMutation({
@@ -18,7 +20,11 @@ export default function Login() {
     },
     onSuccess: (data) => {
       login(data.token);
+      toast('Welcome back!', 'success');
       navigate('/');
+    },
+    onError: () => {
+      toast('Invalid credentials. Please try again.', 'error');
     }
   });
 

@@ -1,36 +1,28 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-@layer base {
-  :root {
-    --background: 224 71% 4%;
-    --foreground: 210 40% 98%;
-    --card: 222 47% 11%;
-    --card-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-  }
-
-  .dark {
-    --background: 224 71% 4%;
-    --foreground: 210 40% 98%;
-    --card: 222 47% 11%;
-    --card-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-  }
+@theme {
+  --color-background: hsl(224 71% 4%);
+  --color-foreground: hsl(210 40% 98%);
+  --color-card: hsl(222 47% 11%);
+  --color-card-foreground: hsl(210 40% 98%);
+  --color-primary: hsl(210 40% 98%);
+  --color-primary-foreground: hsl(222.2 47.4% 11.2%);
 }
 
 @layer base {
   * {
-    @apply border-gray-800;
+    border-color: var(--color-gray-800);
   }
   body {
-    @apply bg-background text-foreground;
+    background-color: var(--color-background);
+    color: var(--color-foreground);
   }
 }
 
 .glass-panel {
-  @apply bg-card/40 backdrop-blur-md border border-white/10 rounded-xl shadow-xl;
+  background-color: color-mix(in srgb, var(--color-card), transparent 60%);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
 }
