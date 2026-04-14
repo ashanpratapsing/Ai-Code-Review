@@ -6,12 +6,15 @@ import com.student.demo.repository.CodeFileRepository;
 
 import java.util.List;
 
-import org.hibernate.boot.jaxb.JaxbLogger_.logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class CodeFileService {
+
+    private static final Logger logger = LoggerFactory.getLogger(CodeFileService.class);
 
     @Autowired
     private CodeFileRepository codeFileRepository;

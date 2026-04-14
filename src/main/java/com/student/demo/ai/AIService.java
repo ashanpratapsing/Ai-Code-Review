@@ -17,10 +17,10 @@ import java.util.Map;
 @Service
 public class AIService {
 
-    @Value("${ai.api.key}")
+    @Value("${groq.api.key}")
     private String apiKey;
 
-    @Value("${ai.api.url}")
+    @Value("${groq.api.url}")
     private String apiUrl;
 
     @Autowired
