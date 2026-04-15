@@ -36,7 +36,8 @@ public class CodeFileService {
                 .map(file -> new CodeFileDTO(
                         file.getId(),
                         file.getFileName(),
-                        file.getLanguage()
+                        file.getLanguage(),
+                        file.getCodeContent()
                 ))
                 .toList();
     }

@@ -33,9 +33,15 @@ public class CodeFileController {
                 .map(file -> new CodeFileDTO(
                         file.getId(),
                         file.getFileName(),
-                        file.getLanguage()
+                        file.getLanguage(),
+                        file.getCodeContent()
                 ))
                 .toList();
+    }
+
+    @GetMapping("/files/{id}")
+    public CodeFile getFile(@PathVariable Long id) {
+        return codeFileRepository.findById(id).orElseThrow();
     }
 
     @GetMapping("/project/{projectId}")

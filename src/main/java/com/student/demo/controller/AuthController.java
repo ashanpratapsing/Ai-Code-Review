@@ -29,9 +29,14 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public Map<String, String> login(@RequestBody User user) {
+    public Map<String, Object> login(@RequestBody User user) {
 
-        User existingUser = userRepository.findByEmail(user.getEmail()).orElseThrow();
+        if (user.getEmail() == null || user.getEmail().isEmpty()) {
+            throw new RuntimeException("Email is required");
+        }
+
+        User existingUser = userRepository.findByEmail(user.getEmail())
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + user.getEmail()));
 
         if (!existingUser.getPassword().equals(user.getPassword())) {
             throw new RuntimeException("Invalid password");
@@ -39,8 +44,9 @@ public class AuthController {
 
         String token = jwtUtil.generateToken(existingUser.getEmail());
 
-        Map<String, String> response = new HashMap<>();
+        Map<String, Object> response = new HashMap<>();
         response.put("token", token);
+        response.put("user", existingUser);
 
         return response;
     }

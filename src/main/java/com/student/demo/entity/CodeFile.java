@@ -23,7 +23,7 @@ public class CodeFile {
 
     @ManyToOne
     @JoinColumn(name = "project_id")
-    @JsonIgnore
+    @com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY)
     private Project project;
 
     public CodeFile() {

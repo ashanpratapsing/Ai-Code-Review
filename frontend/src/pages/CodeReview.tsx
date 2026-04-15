@@ -1,196 +1,231 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import api from '../services/api';
-import { Loader2, Play, Sparkles, Code2, Cpu, FileJson, Clock } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { codeService, aiService } from '../services/api';
+import { Button, Card, Badge, cn } from '../components/ui/core';
+import { Play, Sparkles, FileText, ChevronRight, AlertCircle, Info, CheckCircle2, Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ReactMarkdown from 'react-markdown';
 
-export default function CodeReview() {
-  const [code, setCode] = useState('// Select a file or paste code here...\n');
-  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
+export const CodeReview = () => {
+  const queryClient = useQueryClient();
+  const [code, setCode] = useState('// Select a file to start reviewing');
+  const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
+  const [reviewPanelOpen, setReviewPanelOpen] = useState(true);
 
-  const { data: files, refetch: refetchFiles } = useQuery({
-    queryKey: ['files', selectedProjectId],
-    queryFn: async () => {
-      const res = await api.get(selectedProjectId ? `/code/project/${selectedProjectId}` : '/code/files');
-      return res.data;
-    }
+  const { data: files } = useQuery({
+    queryKey: ['files'],
+    queryFn: () => codeService.getFiles('default-project').then(r => r.data)
   });
 
   const analyzeMutation = useMutation({
-    mutationFn: async (codeContent: string) => {
-      // 1. Upload code to correct endpoint
-      const fileRes = await api.post('/code/upload', {
-        fileName: 'ReviewSnippet.java',
-        codeContent,
-        language: 'java',
-        project: selectedProjectId ? { id: selectedProjectId } : null
-      });
-      // 2. Trigger AI review on the new file ID
-      const [reviewRes, metricsRes] = await Promise.all([
-        api.post(`/ai/review/${fileRes.data.id}`),
-        api.post(`/analyze/${fileRes.data.id}`)
-      ]);
-      refetchFiles();
-      return { review: reviewRes.data, metrics: metricsRes.data };
+    mutationFn: (id: string) => aiService.analyzeFile(id),
+  });
+
+  const aiReviewMutation = useMutation({
+    mutationFn: (id: string) => aiService.getAiReview(id),
+  });
+
+  const uploadMutation = useMutation({
+    mutationFn: (data: any) => codeService.uploadCode(data),
+    onSuccess: () => {
+       queryClient.invalidateQueries({ queryKey: ['files'] });
     }
   });
 
-  const { data: projects } = useQuery({
-    queryKey: ['projects'],
-    queryFn: async () => {
-      const res = await api.get('/projects');
-      return res.data;
+  const handleFileSelect = (file: any) => {
+    setSelectedFileId(file.id);
+    setCode(file.codeContent);
+  };
+
+  const handleStartReview = async () => {
+    if (selectedFileId) {
+       analyzeMutation.mutate(selectedFileId);
+       aiReviewMutation.mutate(selectedFileId);
+    } else {
+       if (!code.trim() || code.includes('// Select a file')) return;
+       try {
+         const response = await codeService.uploadCode({
+           fileName: 'Untitled.ts',
+           codeContent: code,
+           language: 'typescript'
+         });
+         const newFileId = response.data.id;
+         setSelectedFileId(newFileId);
+         queryClient.invalidateQueries({ queryKey: ['files'] });
+         
+         analyzeMutation.mutate(newFileId);
+         aiReviewMutation.mutate(newFileId);
+       } catch (err) {
+         console.error("Auto-upload failed", err);
+       }
     }
-  });
+  };
 
   return (
-    <div className="flex h-screen bg-[#0d1117] text-white text-left overflow-hidden">
-      
-      {/* File Explorer Sidebar */}
-      <div className="w-56 border-r border-[#30363d] bg-[#0d1117] flex flex-col">
-         <div className="p-4 h-16 border-b border-[#30363d] flex items-center gap-2">
-            <Clock className="w-4 h-4 text-gray-400" />
-            <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">History</span>
-         </div>
-         <div className="flex-1 overflow-y-auto p-2 space-y-1">
-            {files?.map((f: any) => (
-               <button 
-                  key={f.id}
-                  onClick={() => setCode(f.codeContent || '')}
-                  className="w-full text-left p-3 rounded-lg hover:bg-[#161b22] text-xs font-medium text-gray-400 hover:text-blue-400 flex items-center gap-2 transition-all border border-transparent hover:border-[#30363d]"
-               >
-                  <FileJson className="w-4 h-4 opacity-50" />
-                  <span className="truncate">{f.fileName}</span>
-               </button>
-            ))}
-            {(!files || files.length === 0) && (
-               <div className="p-4 text-[10px] text-gray-600 italic">No history yet</div>
-            )}
-         </div>
+    <div className="h-[calc(100vh-12rem)] flex gap-6">
+      {/* File Explorer */}
+      <Card className="w-64 p-0 flex flex-col border-white/5 overflow-hidden">
+        <div className="p-4 border-b border-white/5 bg-white/5 flex justify-between items-center">
+          <h5 className="font-semibold text-sm flex items-center gap-2">
+            <FileText className="w-4 h-4" />
+            Explorer
+          </h5>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-6 w-6 rounded-md hover:bg-primary/20 text-primary"
+            onClick={() => {
+              const name = prompt('File Name (e.g. Solution.java):');
+              if (name) {
+                uploadMutation.mutate({
+                  fileName: name,
+                  codeContent: code,
+                  language: name.split('.').pop() || 'txt'
+                });
+              }
+            }}
+          >
+            <Plus className="w-3 h-3" />
+          </Button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-2">
+          {files?.map(file => (
+            <button
+              key={file.id}
+              onClick={() => handleFileSelect(file)}
+              className={cn(
+                "w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center gap-2",
+                selectedFileId === file.id ? "bg-primary/10 text-primary" : "hover:bg-white/5 text-muted-foreground"
+              )}
+            >
+              <FileText className="w-4 h-4 opacity-50" />
+              {file.name}
+            </button>
+          ))}
+          {!files && <p className="text-xs text-muted-foreground p-4 italic text-center">No files found.</p>}
+        </div>
+      </Card>
+
+      {/* Main Editor Area */}
+      <div className="flex-1 flex flex-col gap-4 min-w-0">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <h3 className="text-xl font-bold tracking-tight">
+              {files?.find(f => f.id === selectedFileId)?.name || 'Editor'}
+            </h3>
+            <Badge variant="outline">TypeScript</Badge>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => setReviewPanelOpen(!reviewPanelOpen)}>
+              {reviewPanelOpen ? 'Hide Review' : 'Show Review'}
+            </Button>
+            <Button size="sm" className="gap-2" onClick={handleStartReview} disabled={!code.trim() || code.includes('// Select a file') || analyzeMutation.isPending}>
+              <Sparkles className="w-4 h-4" />
+              Analyze Code
+            </Button>
+          </div>
+        </div>
+
+        <Card className="flex-1 p-0 overflow-hidden border-white/5 bg-[#1e1e1e]">
+          <Editor
+            height="100%"
+            defaultLanguage="typescript"
+            theme="vs-dark"
+            value={code}
+            onChange={(val) => setCode(val || '')}
+            options={{
+              fontSize: 14,
+              minimap: { enabled: false },
+              padding: { top: 20 },
+              smoothScrolling: true,
+              cursorBlinking: 'smooth',
+            }}
+          />
+        </Card>
       </div>
 
-      {/* Pane - Code Editor */}
-      <div className="flex-1 border-r border-[#30363d] flex flex-col">
-          <div className="p-4 bg-[#161b22] border-b border-[#30363d] flex justify-between items-center h-16">
-              <div className="flex items-center gap-4">
-                 <h2 className="text-sm font-black uppercase text-gray-500 tracking-widest flex items-center gap-2">
-                    <Code2 className="w-4 h-4" /> IDE
-                 </h2>
-                 <select 
-                    className="bg-[#0d1117] border border-[#30363d] rounded px-2 py-1 text-xs text-gray-300 outline-none focus:border-blue-500"
-                    onChange={(e) => setSelectedProjectId(Number(e.target.value))}
-                    value={selectedProjectId || ''}
-                 >
-                    <option value="">No Project</option>
-                    {projects?.map((p: any) => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
-                    ))}
-                 </select>
+      {/* AI Review Panel */}
+      <AnimatePresence>
+        {reviewPanelOpen && (
+          <motion.div
+            initial={{ width: 0, opacity: 0 }}
+            animate={{ width: 400, opacity: 1 }}
+            exit={{ width: 0, opacity: 0 }}
+            className="flex flex-col gap-4"
+          >
+            <Card className="flex-1 p-0 flex flex-col border-white/5 overflow-hidden">
+              <div className="p-4 border-b border-white/5 bg-primary/5 flex items-center justify-between">
+                <h5 className="font-semibold text-sm flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-primary" />
+                  AI Analysis
+                </h5>
+                {analyzeMutation.isSuccess && <Badge variant="success">Complete</Badge>}
               </div>
-              <button 
-                onClick={() => analyzeMutation.mutate(code)}
-                disabled={analyzeMutation.isPending || !code.trim()}
-                className="bg-blue-600 hover:bg-blue-500 disabled:bg-gray-800 disabled:text-gray-500 px-4 py-2 rounded-lg text-xs font-black uppercase tracking-tighter flex items-center gap-2 transition-all shadow-xl active:scale-95"
-              >
-                  {analyzeMutation.isPending ? <Loader2 className="animate-spin w-4 h-4" /> : <Play className="w-4 h-4" />}
-                  Review with Groq
-              </button>
-          </div>
-          <div className="flex-1 relative">
-             <Editor
-               height="100%"
-               theme="vs-dark"
-               defaultLanguage="java"
-               value={code}
-               onChange={(val) => setCode(val || '')}
-               options={{ 
-                 minimap: { enabled: false }, 
-                 fontSize: 14, 
-                 padding: { top: 20 },
-                 fontFamily: "'JetBrains Mono', monospace",
-                 smoothScrolling: true,
-                 cursorBlinking: "expand"
-               }}
-             />
-          </div>
-      </div>
 
-      {/* Right Pane - AI Analysis Output */}
-      <div className="flex-1 flex flex-col bg-[#0d1117]">
-          <div className="h-16 border-b border-[#30363d] p-4 flex items-center justify-between bg-[#0d1117]">
-             <h2 className="text-sm font-black uppercase text-blue-500 tracking-widest flex items-center gap-2">
-               <Cpu className="w-4 h-4" /> AI Diagnostics
-             </h2>
-             {analyzeMutation.isSuccess && (
-                <div className="flex gap-4">
-                   <div className="text-[10px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded uppercase font-bold">
-                      Complexity: {analyzeMutation.data.metrics.complexityScore}
-                   </div>
-                   <div className="text-[10px] text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded uppercase font-bold">
-                      Functions: {analyzeMutation.data.metrics.numberOfFunctions}
-                   </div>
-                   <div className="text-[10px] text-purple-400 bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded uppercase font-bold">
-                      Lines: {analyzeMutation.data.metrics.linesOfCode}
-                   </div>
-                </div>
-             )}
-          </div>
-          
-          <div className="flex-1 overflow-y-auto p-10 custom-scrollbar">
-            <AnimatePresence mode="wait">
-              {analyzeMutation.isPending ? (
-                <motion.div 
-                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                  className="flex flex-col items-center justify-center h-full text-gray-400"
-                >
-                  <div className="relative mb-6">
-                    <Loader2 className="animate-spin w-12 h-12 text-blue-600" />
-                    <Sparkles className="absolute -top-1 -right-1 w-5 h-5 text-yellow-400 animate-pulse" />
+              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                {analyzeMutation.isPending && (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map(i => (
+                      <div key={i} className="h-24 bg-white/5 rounded-lg animate-pulse" />
+                    ))}
                   </div>
-                  <p className="font-bold uppercase tracking-tighter text-sm italic">AI Engine generating deep analysis...</p>
-                  <p className="text-xs text-gray-500 mt-2">Checking complexity, potential bugs, and edge cases</p>
-                </motion.div>
-              ) : analyzeMutation.isSuccess ? (
-                <motion.div 
-                  initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
-                  className="space-y-6"
-                >
-                  {/* Quantitative Stats Bar */}
-                  <div className="grid grid-cols-3 gap-4 mb-6">
-                     <div className="p-4 bg-[#161b22] border border-[#30363d] rounded-xl text-center">
-                        <div className="text-[10px] text-gray-500 uppercase font-black mb-1">Complexity</div>
-                        <div className="text-xl font-bold text-blue-400">{analyzeMutation.data.metrics.complexityScore}</div>
-                     </div>
-                     <div className="p-4 bg-[#161b22] border border-[#30363d] rounded-xl text-center">
-                        <div className="text-[10px] text-gray-500 uppercase font-black mb-1">Loops</div>
-                        <div className="text-xl font-bold text-yellow-400">{analyzeMutation.data.metrics.numberOfLoops}</div>
-                     </div>
-                     <div className="p-4 bg-[#161b22] border border-[#30363d] rounded-xl text-center">
-                        <div className="text-[10px] text-gray-500 uppercase font-black mb-1">Functions</div>
-                        <div className="text-xl font-bold text-purple-400">{analyzeMutation.data.metrics.numberOfFunctions}</div>
-                     </div>
-                  </div>
+                )}
 
-                  <div className="bg-[#161b22] border border-[#30363d] p-8 rounded-2xl shadow-2xl relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-4 opacity-5">
-                       <Sparkles className="w-24 h-24" />
+                {analyzeMutation.data && (
+                  <div className="space-y-4">
+                    <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20">
+                       <p className="text-sm font-medium flex items-center gap-2 text-red-500 mb-2">
+                          <AlertCircle className="w-4 h-4" />
+                          Critical Issue Found
+                       </p>
+                       <p className="text-xs text-muted-foreground">{analyzeMutation.data.data.summary}</p>
                     </div>
-                    <ReactMarkdown className="prose prose-invert prose-blue max-w-none">
-                       {analyzeMutation.data.review.explanation}
+                    
+                    {analyzeMutation.data.data.issues.map((issue, idx) => (
+                      <div key={idx} className="p-4 rounded-lg bg-secondary/50 border border-border">
+                        <div className="flex justify-between mb-2">
+                          <span className="text-xs font-mono text-muted-foreground">Line {issue.line}</span>
+                          <Badge variant={issue.severity === 'high' ? 'error' : 'warning'}>{issue.severity}</Badge>
+                        </div>
+                        <p className="text-sm mb-2">{issue.message}</p>
+                        <div className="p-2 rounded bg-background/50 text-xs font-mono border border-border">
+                          {issue.suggestion}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {aiReviewMutation.data && (
+                  <div className="prose prose-invert prose-sm pb-8">
+                    <ReactMarkdown>
+                      {`
+${aiReviewMutation.data.data.explanation ? `### 📝 Summary\n${aiReviewMutation.data.data.explanation}\n\n` : ''}
+${aiReviewMutation.data.data.bugs ? `### 🐛 Bugs & Issues\n${aiReviewMutation.data.data.bugs}\n\n` : ''}
+${aiReviewMutation.data.data.optimization ? `### ⚡ Optimization\n${aiReviewMutation.data.data.optimization}\n\n` : ''}
+${aiReviewMutation.data.data.codeSmells ? `### 👃 Code Smells\n${aiReviewMutation.data.data.codeSmells}\n\n` : ''}
+${aiReviewMutation.data.data.timeComplexity ? `### ⏱️ Complexity\n**Time & Space:** ${aiReviewMutation.data.data.timeComplexity}\n\n` : ''}
+${aiReviewMutation.data.data.refactoredCode ? `### ✨ Recommended Refactor\n\`\`\`typescript\n${aiReviewMutation.data.data.refactoredCode}\n\`\`\`\n\n` : ''}
+${aiReviewMutation.data.data.unitTests ? `### 🧪 Unit Tests\n\`\`\`typescript\n${aiReviewMutation.data.data.unitTests}\n\`\`\`\n\n` : ''}
+                      `}
                     </ReactMarkdown>
                   </div>
-                </motion.div>
-              ) : (
-                <div className="h-full flex flex-col items-center justify-center border-2 border-dashed border-[#30363d] rounded-3xl opacity-30">
-                  <Sparkles className="w-12 h-12 mb-4" />
-                  <p className="text-sm font-bold uppercase tracking-widest">Input Code to Start Session</p>
-                </div>
-              )}
-            </AnimatePresence>
-          </div>
-      </div>
+                )}
+
+                {!analyzeMutation.isIdle || (
+                   <div className="text-center py-12">
+                      <Sparkles className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-20" />
+                      <p className="text-sm text-muted-foreground px-8">
+                        Upload or select a file and click "Analyze" to see AI-powered suggestions.
+                      </p>
+                   </div>
+                )}
+              </div>
+            </Card>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
-}
+};
