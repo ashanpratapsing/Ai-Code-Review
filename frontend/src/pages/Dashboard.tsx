@@ -1,4 +1,3 @@
-import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { dashboardService } from '../services/api';
 import { Card, Badge, cn } from '../components/ui/core';

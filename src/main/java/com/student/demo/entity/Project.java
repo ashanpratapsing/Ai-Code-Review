@@ -35,6 +35,7 @@ public class Project {
     }
 
     public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
     public String getProjectName() { return projectName; }
     public void setProjectName(String projectName) { this.projectName = projectName; }
@@ -43,9 +44,11 @@ public class Project {
     public void setDescription(String description) { this.description = description; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
     public User getUser() { return user; }
     public void setUser(User user) { this.user = user; }
 
     public List<CodeFile> getCodeFiles() { return codeFiles; }
+    public void setCodeFiles(List<CodeFile> codeFiles) { this.codeFiles = codeFiles; }
 }

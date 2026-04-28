@@ -36,13 +36,15 @@ public class AIService {
     @Autowired
     private com.fasterxml.jackson.databind.ObjectMapper objectMapper;
 
+    @Autowired
+    private RestTemplate restTemplate;
+
     public AIReport generateReview(CodeFile file) {
         logger.info("Generating AI review for file: {}", file.getFileName());
 
         String prompt = "Analyze this code and find bugs, optimization, time complexity and explanation:\n"
                 + file.getCodeContent();
 
-        RestTemplate restTemplate = new RestTemplate();
 
         // Create message
         Map<String, Object> message = new HashMap<>();

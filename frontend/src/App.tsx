@@ -8,6 +8,7 @@ import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { Projects } from './pages/Projects';
 import { CodeReview } from './pages/CodeReview';
+import { HistoryPage } from './pages/HistoryPage';
 import ErrorBoundary from './components/ErrorBoundary';
 
 const queryClient = new QueryClient({
@@ -53,6 +54,12 @@ function App() {
               <Route path="/review" element={
                 <ProtectedRoute>
                   <CodeReview />
+                </ProtectedRoute>
+              } />
+
+              <Route path="/history" element={
+                <ProtectedRoute>
+                  <HistoryPage />
                 </ProtectedRoute>
               } />
 

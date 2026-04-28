@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, FolderKanban, Terminal, LogOut, ChevronRight, Activity } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, Terminal, LogOut, ChevronRight, Activity, History as HistoryIcon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { cn, Button } from '../components/ui/core';
 
@@ -44,6 +44,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
           <SidebarItem to="/dashboard" icon={LayoutDashboard} label="Dashboard" />
           <SidebarItem to="/projects" icon={FolderKanban} label="Projects" />
           <SidebarItem to="/review" icon={Terminal} label="Code Review" />
+          <SidebarItem to="/history" icon={HistoryIcon} label="History" />
         </nav>
 
         <div className="p-4 mt-auto">

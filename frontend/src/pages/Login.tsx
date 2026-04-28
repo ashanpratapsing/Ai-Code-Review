@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Button, Input, Card } from '../components/ui/core';
-import { Terminal, Lock, Mail, ArrowRight, Activity } from 'lucide-react';
+import { Terminal, Lock, Mail, ArrowRight, Globe } from 'lucide-react';
 import { motion } from 'framer-motion';
 export const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -126,10 +126,24 @@ export const Login = () => {
               <div className="relative flex justify-center text-xs uppercase"><span className="bg-background/0 px-2 text-muted-foreground">Or continue with</span></div>
             </div>
             
-            <Button variant="outline" className="w-full gap-2">
-              <Activity className="w-5 h-5" />
-              Developer SSO
-            </Button>
+            <div className="flex gap-4">
+              <Button 
+                variant="outline" 
+                className="w-full gap-2"
+                onClick={() => window.location.href = 'http://localhost:8080/oauth2/authorization/github'}
+              >
+                <Globe className="w-5 h-5" />
+                GitHub
+              </Button>
+              <Button 
+                variant="outline" 
+                className="w-full gap-2"
+                onClick={() => window.location.href = 'http://localhost:8080/oauth2/authorization/google'}
+              >
+                <Globe className="w-5 h-5" />
+                Google
+              </Button>
+            </div>
           </div>
 
           <p className="text-center text-sm text-muted-foreground mt-8">
