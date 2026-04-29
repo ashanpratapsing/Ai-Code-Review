@@ -43,7 +43,7 @@ services:
     build: .
     container_name: antigravity_app
     ports:
-      - "8080:8080"
+      - "8080:8088"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/ai_code_review
