@@ -99,32 +99,36 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ results, onRes
 
         {/* 4. Better Approach & FAANG Insights */}
         <div className="space-y-6">
-          <div className="space-y-4">
-            <h4 className="text-sm font-bold flex items-center gap-2 px-2">
-              <Zap className="w-4 h-4 text-yellow-500" />
-              Better Approach
-            </h4>
-            <Card className="p-5 bg-yellow-500/5 border-yellow-500/10">
-              <p className="text-sm leading-relaxed opacity-90">{betterApproach}</p>
-            </Card>
-          </div>
+          {betterApproach && (
+            <div className="space-y-4">
+              <h4 className="text-sm font-bold flex items-center gap-2 px-2">
+                <Zap className="w-4 h-4 text-yellow-500" />
+                Better Approach
+              </h4>
+              <Card className="p-5 bg-yellow-500/5 border-yellow-500/10">
+                <p className="text-sm leading-relaxed opacity-90">{betterApproach}</p>
+              </Card>
+            </div>
+          )}
 
-          <div className="space-y-4">
-            <h4 className="text-sm font-bold flex items-center gap-2 px-2">
-              <Lightbulb className="w-4 h-4 text-primary" />
-              FAANG Level Insights
-            </h4>
-            <Card className="p-5 bg-primary/5 border-primary/10 border-l-4 border-l-primary">
-              <p className="text-sm italic opacity-80 leading-relaxed">
-                "{faangInsights}"
-              </p>
-            </Card>
-          </div>
+          {faangInsights && (
+            <div className="space-y-4">
+              <h4 className="text-sm font-bold flex items-center gap-2 px-2">
+                <Lightbulb className="w-4 h-4 text-primary" />
+                FAANG Level Insights
+              </h4>
+              <Card className="p-5 bg-primary/5 border-primary/10 border-l-4 border-l-primary">
+                <p className="text-sm italic opacity-80 leading-relaxed">
+                  "{faangInsights}"
+                </p>
+              </Card>
+            </div>
+          )}
         </div>
       </div>
 
       {/* 5. Optimized Code Block */}
-      {optimizedCode && (
+      {optimizedCode && optimizedCode !== 'N/A' && (
         <Card className="p-0 overflow-hidden border-primary/20 bg-black/40">
           <div className="px-5 py-3 border-b border-white/5 bg-primary/10 flex items-center justify-between">
             <div className="flex items-center gap-2">

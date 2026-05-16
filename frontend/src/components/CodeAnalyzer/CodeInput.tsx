@@ -4,13 +4,14 @@ import { Button, Card } from '../ui/core';
 import { Play, Code2, ClipboardList, Trash2 } from 'lucide-react';
 
 interface CodeInputProps {
-  onAnalyze: (code: string, language: string) => void;
+  onAnalyze: (code: string, language: string, model: string) => void;
   isLoading: boolean;
 }
 
 export const CodeInput: React.FC<CodeInputProps> = ({ onAnalyze, isLoading }) => {
   const [code, setCode] = useState(() => localStorage.getItem('last_code') || '// Paste your code here...\n\n');
   const [language, setLanguage] = useState('typescript');
+  const [aiModel, setAiModel] = useState('AUTO');
 
   useEffect(() => {
     localStorage.setItem('last_code', code);
@@ -22,6 +23,12 @@ export const CodeInput: React.FC<CodeInputProps> = ({ onAnalyze, isLoading }) =>
     { label: 'Java', value: 'java' },
     { label: 'Python', value: 'python' },
     { label: 'C++', value: 'cpp' },
+  ];
+
+  const models = [
+    { label: 'AUTO (Smart Fallback)', value: 'AUTO' },
+    { label: 'GROQ (LLaMA-3 Fast)', value: 'GROQ' },
+    { label: 'OPENAI (GPT-4o-mini)', value: 'OPENAI' },
   ];
 
   return (
@@ -37,6 +44,18 @@ export const CodeInput: React.FC<CodeInputProps> = ({ onAnalyze, isLoading }) =>
             >
               {languages.map(lang => (
                 <option key={lang.value} value={lang.value} className="bg-[#1e1e1e]">{lang.label}</option>
+              ))}
+            </select>
+          </div>
+          <div className="h-4 w-px bg-white/10" />
+          <div className="flex items-center gap-2">
+            <select 
+              value={aiModel}
+              onChange={(e) => setAiModel(e.target.value)}
+              className="bg-transparent text-xs font-bold uppercase tracking-wider focus:outline-none cursor-pointer text-purple-400 hover:text-purple-300 transition-colors"
+            >
+              {models.map(model => (
+                <option key={model.value} value={model.value} className="bg-[#1e1e1e]">{model.label}</option>
               ))}
             </select>
           </div>
@@ -61,7 +80,7 @@ export const CodeInput: React.FC<CodeInputProps> = ({ onAnalyze, isLoading }) =>
             size="sm" 
             className="h-8 text-[10px] gap-2 px-6 rounded-full"
             disabled={code.length < 10 || isLoading}
-            onClick={() => onAnalyze(code, language)}
+            onClick={() => onAnalyze(code, language, aiModel)}
           >
             <Play className="w-3 h-3 fill-current" />
             Analyze Code

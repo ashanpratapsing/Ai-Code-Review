@@ -30,22 +30,8 @@ export const Dashboard = () => {
   const { data: summary, isLoading } = useQuery({
     queryKey: ['dashboardSummary'],
     queryFn: async () => {
-      // Mock data if API fails or for demo
-      return {
-        totalProjects: 12,
-        totalFilesAnalyzed: 154,
-        criticalIssues: 8,
-        score: 92,
-        activityData: [
-          { name: 'Mon', issues: 4, files: 12 },
-          { name: 'Tue', issues: 7, files: 15 },
-          { name: 'Wed', issues: 3, files: 10 },
-          { name: 'Thu', issues: 12, files: 25 },
-          { name: 'Fri', issues: 5, files: 18 },
-          { name: 'Sat', issues: 2, files: 8 },
-          { name: 'Sun', issues: 1, files: 5 },
-        ]
-      };
+      const res = await dashboardService.getSummary();
+      return res.data;
     }
   });
 

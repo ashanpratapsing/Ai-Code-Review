@@ -22,8 +22,15 @@ export type CodeFile = {
 
 export type AnalysisResult = {
   fileId: string;
-  issues: Issue[];
+  status: string;
+  score: number;
   summary: string;
+  issues: string[];
+  betterApproach?: string;
+  timeComplexity?: string;
+  spaceComplexity?: string;
+  optimizedCode?: string;
+  faangInsights?: string;
 };
 
 export type Issue = {

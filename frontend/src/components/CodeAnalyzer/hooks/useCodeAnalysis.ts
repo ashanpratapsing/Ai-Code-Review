@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { aiService, codeService, historyService } from '../../../services/api';
+import { api, aiService, codeService, historyService } from '../../../services/api';
 import type { CodeFile } from '../../../types';
 
 export const useCodeAnalysis = () => {
@@ -7,24 +7,51 @@ export const useCodeAnalysis = () => {
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<any>(null);
 
-  const analyze = useCallback(async (code: string, language: string) => {
+  const analyze = useCallback(async (code: string, language: string, model: string = 'AUTO') => {
     setLoading(true);
     setError(null);
     try {
       // 1. Upload code
       const uploadRes = await codeService.uploadCode({
-        fileName: `Analysis_${Date.now()}.${language === 'javascript' ? 'js' : language === 'python' ? 'py' : 'txt'}`,
-        codeContent: code,
+        name: `Analysis_${Date.now()}.${language === 'javascript' ? 'js' : language === 'python' ? 'py' : 'txt'}`,
+        content: code,
         language
       });
       
       const fileId = uploadRes.data.id;
 
-      // 2. Trigger analysis - Backend now returns the exact structured format
-      const analysisRes = await aiService.analyzeFile(fileId);
-      const enhancedMetrics = analysisRes.data;
+      // 2. Trigger async analysis
+      await aiService.analyzeFile(fileId, model);
 
-      // 3. Mapping is now trivial because backend matches the UI requirements
+      // 3. Wait for Real-Time SSE Updates
+      const enhancedMetrics = await new Promise<any>((resolve, reject) => {
+        const url = `${import.meta.env.VITE_API_URL || 'http://localhost:8088'}/analyze/${fileId}/stream`;
+        const eventSource = new EventSource(url, { withCredentials: true });
+
+        eventSource.addEventListener('message', async (event) => {
+          const status = event.data;
+          
+          if (status === 'COMPLETED') {
+            eventSource.close();
+            try {
+              const resultRes = await api.get(`/analyze/${fileId}`);
+              resolve(resultRes.data);
+            } catch (e) {
+              reject(new Error('Failed to fetch final analysis results.'));
+            }
+          } else if (status === 'FAILED') {
+            eventSource.close();
+            reject(new Error('AI Analysis failed to process the request.'));
+          }
+        });
+
+        eventSource.onerror = () => {
+          eventSource.close();
+          reject(new Error('Lost connection to analysis server. Please try again.'));
+        };
+      });
+
+      // 4. Mapping
       const formattedResults = {
         issues: enhancedMetrics.issues.map((msg: string, idx: number) => ({
           type: 'warning',
@@ -46,7 +73,7 @@ export const useCodeAnalysis = () => {
 
       setResults(formattedResults);
 
-      // 4. Save to history
+      // 5. Save to history
       try {
         await historyService.saveHistory({
           codeSnippet: code,

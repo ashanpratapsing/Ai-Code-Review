@@ -23,8 +23,8 @@ export const Projects = () => {
   });
 
   const filteredProjects = projects?.filter(p => 
-    p.name.toLowerCase().includes(search.toLowerCase()) || 
-    p.language.toLowerCase().includes(search.toLowerCase())
+    (p.name?.toLowerCase() || '').includes(search.toLowerCase()) || 
+    (p.language?.toLowerCase() || '').includes(search.toLowerCase())
   );
 
   return (
@@ -89,14 +89,25 @@ export const Projects = () => {
                   </div>
 
                   <div className="flex gap-2">
-                    <Button variant="secondary" size="sm" className="flex-1" onClick={() => window.location.href = `/review?projectId=${project.id}`}>
+                    <Button 
+                      variant="secondary" 
+                      size="sm" 
+                      className="flex-1" 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.location.href = `/review?projectId=${project.id}`;
+                      }}
+                    >
                       View Files
                     </Button>
                     <Button 
                       variant="ghost" 
                       size="sm" 
                       className="text-destructive hover:bg-destructive/10"
-                      onClick={() => deleteMutation.mutate(project.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteMutation.mutate(project.id);
+                      }}
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>

@@ -1,20 +1,31 @@
 import axios from 'axios';
 import type { Project, CodeFile, AnalysisResult, DashboardSummary } from '../types';
 
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8088',
+export const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080',
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true,
 });
 
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      try {
+        await api.post('/auth/refresh');
+        return api(originalRequest);
+      } catch (e) {
+        // Handle refresh failure (e.g. redirect to login)
+        return Promise.reject(e);
+      }
+    }
+    return Promise.reject(error);
   }
-  return config;
-});
+);
 
 export const authService = {
   login: (credentials: any) => api.post('/auth/login', credentials),
@@ -39,7 +50,7 @@ export const codeService = {
 };
 
 export const aiService = {
-  analyzeFile: (fileId: string) => api.post<AnalysisResult>(`/analyze/${fileId}`),
+  analyzeFile: (fileId: string, model: string = 'AUTO') => api.post<AnalysisResult>(`/analyze/${fileId}?model=${model}`),
   getAiReview: (fileId: string) => api.post<any>(`/ai/review/${fileId}`),
   analyzeBuffer: (content: string) => api.post<AnalysisResult>('/analyze/buffer', { content }),
 };

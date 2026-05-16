@@ -1,6 +1,6 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
+import { historyService } from '../services/api';
 import { format } from 'date-fns';
 import { 
   History as HistoryIcon, 
@@ -11,27 +11,40 @@ import {
   Search,
   AlertCircle
 } from 'lucide-react';
-import { Card, Badge, Button } from '../components/ui/core';
+import { Card, Badge, Button, Modal } from '../components/ui/core';
+import { AnalysisResults } from '../components/CodeAnalyzer/AnalysisResults';
 
 interface HistoryItem {
   id: number;
   codeSnippet: string;
   resultJson: string;
   score: number;
-  createdAt: string;
+  createdAt: string | number[];
 }
 
 export const HistoryPage: React.FC = () => {
+  const [selectedItem, setSelectedItem] = React.useState<HistoryItem | null>(null);
+  
   const { data: history, isLoading, error } = useQuery<HistoryItem[]>({
     queryKey: ['analysis-history'],
     queryFn: async () => {
-      const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:8080/history', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await historyService.getHistory();
       return response.data;
     }
   });
+
+  const parseSafeDate = (dateStr: any) => {
+    try {
+      if (Array.isArray(dateStr)) {
+        // Handle Java LocalDateTime array [year, month, day, hour, min, sec, nano]
+        const [y, m, d, h, min] = dateStr;
+        return new Date(y, m - 1, d, h, min);
+      }
+      return new Date(dateStr);
+    } catch (e) {
+      return new Date();
+    }
+  };
 
   if (isLoading) {
     return (
@@ -79,7 +92,11 @@ export const HistoryPage: React.FC = () => {
           </div>
         ) : (
           history?.map((item) => (
-            <Card key={item.id} className="group hover:bg-secondary/20 transition-all cursor-pointer border-white/5">
+            <Card 
+              key={item.id} 
+              className="group hover:bg-secondary/20 transition-all cursor-pointer border-white/5"
+              onClick={() => setSelectedItem(item)}
+            >
               <div className="p-5 flex items-center justify-between">
                 <div className="flex items-center gap-6">
                   <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
@@ -95,7 +112,7 @@ export const HistoryPage: React.FC = () => {
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-1.5">
                         <Calendar className="h-3.5 w-3.5" />
-                        {format(new Date(item.createdAt), 'MMM dd, yyyy HH:mm')}
+                        {format(parseSafeDate(item.createdAt), 'MMM dd, yyyy HH:mm')}
                       </div>
                       <div className="flex items-center gap-1.5">
                         <BarChart3 className="h-3.5 w-3.5" />
@@ -115,6 +132,27 @@ export const HistoryPage: React.FC = () => {
           ))
         )}
       </div>
+
+      <Modal 
+        isOpen={!!selectedItem} 
+        onClose={() => setSelectedItem(null)} 
+        title={selectedItem ? `Analysis Details - #${selectedItem.id}` : ''}
+      >
+        {selectedItem && (
+          <div className="space-y-8">
+             <div className="p-4 bg-black/50 rounded-xl border border-white/5">
+                <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Code Snippet</h4>
+                <pre className="text-xs p-4 bg-[#0d0d0f] rounded-lg overflow-x-auto text-blue-300/80">
+                  <code>{selectedItem.codeSnippet}</code>
+                </pre>
+             </div>
+             <AnalysisResults 
+               results={JSON.parse(selectedItem.resultJson)} 
+               onReset={() => setSelectedItem(null)} 
+             />
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };

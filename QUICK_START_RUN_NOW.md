@@ -9,7 +9,7 @@ Follow these steps to get the full-stack environment running in under 5 minutes.
 - [ ] **Docker Desktop**: Must be running.
 - [ ] **Java**: JDK 17 or 21 installed (`java -version`).
 - [ ] **Node.js**: v20+ installed (`node -v`).
-- [ ] **Ports**: Verify `8080` (Backend) and `5173` (Frontend) are free.
+- [ ] **Ports**: Verify `8088` (Backend) and `5173` (Frontend) are free.
 
 ---
 
@@ -38,7 +38,7 @@ npm run dev
 ### 1. Backend Health
 Check if the API is responsive:
 ```bash
-curl http://localhost:8080/actuator/health
+curl http://localhost:8088/actuator/health
 # Expected: {"status":"UP"}
 ```
 

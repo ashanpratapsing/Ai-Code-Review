@@ -10,9 +10,12 @@ import {
 import { CodeAnalyzer } from '../components/CodeAnalyzer/CodeAnalyzer';
 
 export const CodeReview = () => {
+  const queryParams = new URLSearchParams(window.location.search);
+  const projectId = queryParams.get('projectId') || 'all';
+
   const { data: files } = useQuery({
-    queryKey: ['files'],
-    queryFn: () => codeService.getFiles('default-project').then(r => r.data)
+    queryKey: ['files', projectId],
+    queryFn: () => codeService.getFiles(projectId).then(r => r.data)
   });
 
   return (
