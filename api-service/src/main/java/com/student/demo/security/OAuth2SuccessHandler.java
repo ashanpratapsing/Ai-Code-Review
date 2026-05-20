@@ -3,6 +3,7 @@ package com.student.demo.security;
 import com.student.demo.entity.User;
 import com.student.demo.repository.UserRepository;
 import com.student.demo.service.TokenService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,13 +20,15 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
     private final TokenService tokenService;
     private final UserRepository userRepository;
-    
+    private final PasswordEncoder passwordEncoder;
+
     @org.springframework.beans.factory.annotation.Value("${app.frontend.url}")
     private String frontendUrl;
 
-    public OAuth2SuccessHandler(TokenService tokenService, UserRepository userRepository) {
+    public OAuth2SuccessHandler(TokenService tokenService, UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.tokenService = tokenService;
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -43,6 +46,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             newUser.setEmail(finalEmail);
             newUser.setName(oAuth2User.getAttribute("name"));
             newUser.setRole("USER");
+            newUser.setPassword(passwordEncoder.encode("OAUTH-" + java.util.UUID.randomUUID()));
             return userRepository.save(newUser);
         });
 

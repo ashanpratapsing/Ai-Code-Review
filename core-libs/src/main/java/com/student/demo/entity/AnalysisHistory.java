@@ -23,6 +23,12 @@ public class AnalysisHistory {
 
     private Integer score;
 
+    @Column(name = "project_id")
+    private Long projectId;
+
+    @Column(name = "code_file_id")
+    private Long codeFileId;
+
     private LocalDateTime createdAt = LocalDateTime.now();
 
     public AnalysisHistory() {}
@@ -39,4 +45,8 @@ public class AnalysisHistory {
     public void setScore(Integer score) { this.score = score; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public Long getProjectId() { return projectId; }
+    public void setProjectId(Long projectId) { this.projectId = projectId; }
+    public Long getCodeFileId() { return codeFileId; }
+    public void setCodeFileId(Long codeFileId) { this.codeFileId = codeFileId; }
 }

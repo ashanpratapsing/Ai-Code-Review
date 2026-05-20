@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ProjectDTO {
     private Long id;
-    private String name;
+    private String projectName;
     private String description;
 }

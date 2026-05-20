@@ -1,13 +1,14 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { User } from '../types';
-import { authService } from '../services/api';
+import { authService, api } from '../services/api';
 
 interface AuthContextType {
   user: User | null;
-  login: (credentials: any) => Promise<void>;
-  register: (credentials: any) => Promise<void>;
-  logout: () => void;
+  login: (credentials: { email: string; password: string }) => Promise<void>;
+  register: (credentials: { name: string; email: string; password: string }) => Promise<void>;
+  logout: () => Promise<void>;
   isLoading: boolean;
+  isAuthenticated: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -16,46 +17,50 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const initAuth = async () => {
-      try {
-        // Automatically sends HttpOnly cookies
-        const response = await api.get('/auth/me');
-        setUser(response.data);
-      } catch (e) {
-        console.log("No active session or session expired.");
-        setUser(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    initAuth();
+  const refreshSession = useCallback(async () => {
+    try {
+      const response = await api.get<User>('/auth/me');
+      setUser(response.data);
+    } catch {
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
-  const login = async (credentials: any) => {
+  useEffect(() => {
+    refreshSession();
+  }, [refreshSession]);
+
+  const login = async (credentials: { email: string; password: string }) => {
     const response = await authService.login(credentials);
-    const { user: userData } = response.data;
-    setUser(userData);
+    setUser(response.data.user);
   };
 
-  const register = async (credentials: any) => {
+  const register = async (credentials: { name: string; email: string; password: string }) => {
     await authService.register(credentials);
     await login({ email: credentials.email, password: credentials.password });
   };
 
   const logout = async () => {
     try {
-      await api.post('/auth/logout');
-    } catch (e) {
-      console.error("Logout failed", e);
+      await authService.logout();
     } finally {
       setUser(null);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, isLoading }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        login,
+        register,
+        logout,
+        isLoading,
+        isAuthenticated: !!user,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -63,7 +68,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;

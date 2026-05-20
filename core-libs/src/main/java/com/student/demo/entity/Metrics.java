@@ -23,6 +23,12 @@ public class Metrics {
     private String summary;
 
     @Column(columnDefinition = "TEXT")
+    private String codeQuality;
+
+    @Column(columnDefinition = "TEXT")
+    private String explanation;
+
+    @Column(columnDefinition = "TEXT")
     private String bugs;
 
     @Column(columnDefinition = "TEXT")
@@ -50,6 +56,30 @@ public class Metrics {
     private String faangInsights;
 
     @Column(columnDefinition = "TEXT")
+    private String securityIssues;
+
+    @Column(columnDefinition = "TEXT")
+    private String suggestions;
+
+    @Column(columnDefinition = "TEXT")
+    private String designPattern;
+
+    @Column(columnDefinition = "TEXT")
+    private String edgeCases;
+
+    @Column(columnDefinition = "TEXT")
+    private String performanceIssues;
+
+    @Column(columnDefinition = "TEXT")
+    private String bestPractices;
+
+    @Column(columnDefinition = "TEXT")
+    private String scalabilityAnalysis;
+
+    private int readabilityScore;
+    private int maintainabilityScore;
+
+    @Column(columnDefinition = "TEXT")
     private String failureReason;
 
     private int retryCount = 0;
@@ -75,6 +105,10 @@ public class Metrics {
     public void setComplexityScore(int complexityScore) { this.complexityScore = complexityScore; }
     public String getSummary() { return summary; }
     public void setSummary(String summary) { this.summary = summary; }
+    public String getCodeQuality() { return codeQuality; }
+    public void setCodeQuality(String codeQuality) { this.codeQuality = codeQuality; }
+    public String getExplanation() { return explanation; }
+    public void setExplanation(String explanation) { this.explanation = explanation; }
     public String getBugs() { return bugs; }
     public void setBugs(String bugs) { this.bugs = bugs; }
     public String getOptimization() { return optimization; }
@@ -93,6 +127,25 @@ public class Metrics {
     public void setSpaceComplexity(String spaceComplexity) { this.spaceComplexity = spaceComplexity; }
     public String getFaangInsights() { return faangInsights; }
     public void setFaangInsights(String faangInsights) { this.faangInsights = faangInsights; }
+
+    public String getSecurityIssues() { return securityIssues; }
+    public void setSecurityIssues(String securityIssues) { this.securityIssues = securityIssues; }
+    public String getSuggestions() { return suggestions; }
+    public void setSuggestions(String suggestions) { this.suggestions = suggestions; }
+    public String getDesignPattern() { return designPattern; }
+    public void setDesignPattern(String designPattern) { this.designPattern = designPattern; }
+    public String getEdgeCases() { return edgeCases; }
+    public void setEdgeCases(String edgeCases) { this.edgeCases = edgeCases; }
+    public String getPerformanceIssues() { return performanceIssues; }
+    public void setPerformanceIssues(String performanceIssues) { this.performanceIssues = performanceIssues; }
+    public String getBestPractices() { return bestPractices; }
+    public void setBestPractices(String bestPractices) { this.bestPractices = bestPractices; }
+    public String getScalabilityAnalysis() { return scalabilityAnalysis; }
+    public void setScalabilityAnalysis(String scalabilityAnalysis) { this.scalabilityAnalysis = scalabilityAnalysis; }
+    public int getReadabilityScore() { return readabilityScore; }
+    public void setReadabilityScore(int readabilityScore) { this.readabilityScore = readabilityScore; }
+    public int getMaintainabilityScore() { return maintainabilityScore; }
+    public void setMaintainabilityScore(int maintainabilityScore) { this.maintainabilityScore = maintainabilityScore; }
 
     public String getFailureReason() { return failureReason; }
     public void setFailureReason(String failureReason) { this.failureReason = failureReason; }

@@ -3,10 +3,8 @@ package com.student.demo.controller;
 import com.student.demo.dto.ProjectDTO;
 import com.student.demo.entity.Project;
 import com.student.demo.entity.User;
-import com.student.demo.repository.UserRepository;
+import com.student.demo.security.SecurityUtil;
 import com.student.demo.service.ProjectService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,33 +13,32 @@ import java.util.List;
 @RequestMapping("/projects")
 public class ProjectController {
 
-    @Autowired
-    private ProjectService projectService;
+    private final ProjectService projectService;
+    private final SecurityUtil securityUtil;
 
-    @Autowired
-    private UserRepository userRepository;
-
-    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ProjectController.class);
-
-    @PostMapping
-    public Project createProject(@RequestBody Project project, Authentication authentication) {
-        if (authentication == null) {
-             throw new RuntimeException("User is not authenticated");
-        }
-        
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email).orElseThrow(() -> 
-            new RuntimeException("Authenticated user not found in database: " + email));
-        
-        project.setUser(user);
-        return projectService.createProject(project);
+    public ProjectController(ProjectService projectService, SecurityUtil securityUtil) {
+        this.projectService = projectService;
+        this.securityUtil = securityUtil;
     }
 
-
-
+    @PostMapping
+    public Project createProject(@RequestBody Project project) {
+        User user = securityUtil.requireCurrentUser();
+        return projectService.createProject(project, user);
+    }
 
     @GetMapping
-    public List<ProjectDTO> getAllProjects(Authentication authentication) {
-        return projectService.getAllProjects();
+    public List<ProjectDTO> getAllProjects() {
+        return projectService.getProjectsForUser(securityUtil.requireCurrentUserId());
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteProject(@PathVariable Long id) {
+        projectService.deleteProject(id, securityUtil.requireCurrentUserId());
+    }
+
+    @PutMapping("/{id}")
+    public Project updateProject(@PathVariable Long id, @RequestBody Project project) {
+        return projectService.updateProject(id, project, securityUtil.requireCurrentUserId());
     }
 }

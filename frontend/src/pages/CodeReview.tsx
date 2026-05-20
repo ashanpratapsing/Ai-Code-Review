@@ -1,69 +1,76 @@
-import React from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useSearchParams } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { codeService } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { Card } from '../components/ui/core';
-import { 
-  Plus, 
-  Code2,
-  FileText
-} from 'lucide-react';
+import { Code2, FileText } from 'lucide-react';
 import { CodeAnalyzer } from '../components/CodeAnalyzer/CodeAnalyzer';
+import type { CodeFile } from '../types';
 
 export const CodeReview = () => {
-  const queryParams = new URLSearchParams(window.location.search);
-  const projectId = queryParams.get('projectId') || 'all';
+  const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const projectIdParam = searchParams.get('projectId');
+  const projectId = projectIdParam ? Number(projectIdParam) : undefined;
+
+  const [selectedFile, setSelectedFile] = useState<CodeFile | null>(null);
 
   const { data: files } = useQuery({
-    queryKey: ['files', projectId],
-    queryFn: () => codeService.getFiles(projectId).then(r => r.data)
+    queryKey: ['files', user?.id, projectId],
+    queryFn: () => codeService.getFiles(projectId).then((r) => r.data),
+    enabled: !!user?.id && !!projectId,
   });
 
+  if (!projectId) {
+    return (
+      <motion.p className="p-12 text-center text-muted-foreground" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+        Select a project from the Projects page to start reviewing code.
+      </motion.p>
+    );
+  }
+
   return (
-    <div className="h-[calc(100vh-10rem)] flex gap-6 p-2">
-      {/* 1. Project Navigation Sidebar */}
+    <motion.div className="h-[calc(100vh-10rem)] flex gap-6 p-2" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       <Card className="w-72 p-0 flex flex-col border-white/5 bg-black/40 backdrop-blur-3xl overflow-hidden shadow-2xl">
-        <div className="p-5 border-b border-white/5 bg-white/5 flex justify-between items-center bg-gradient-to-r from-primary/10 to-transparent">
+        <div className="p-5 border-b border-white/5">
           <h5 className="font-bold text-xs uppercase tracking-widest text-muted-foreground flex items-center gap-2">
             <Code2 className="w-4 h-4 text-primary" />
-            Project Hub
+            Project Files
           </h5>
-          <button 
-            className="h-8 w-8 rounded-lg hover:bg-primary/20 text-primary transition-all active:scale-95 flex items-center justify-center border border-white/5"
-            onClick={() => {
-              const name = prompt('File Name (e.g. Solution.java):');
-              if (name) {
-                // Future functionality: create empty file or select context
-                console.log('Creating file:', name);
-              }
-            }}
-          >
-            <Plus className="w-4 h-4" />
-          </button>
-        </div>
-        
+        </motion.div>
+
         <div className="flex-1 overflow-y-auto p-3 space-y-1">
-          {files?.map(file => (
-            <div
+          {files?.map((file) => (
+            <button
               key={file.id}
-              className="w-full text-left px-4 py-3 rounded-xl text-sm transition-all flex items-center gap-3 border border-transparent hover:bg-white/5 text-muted-foreground cursor-pointer"
+              type="button"
+              onClick={() => setSelectedFile(file)}
+              className={`w-full text-left px-4 py-3 rounded-xl text-sm transition-all flex items-center gap-3 border ${
+                selectedFile?.id === file.id
+                  ? 'bg-primary/10 border-primary/30 text-primary'
+                  : 'border-transparent hover:bg-white/5 text-muted-foreground'
+              }`}
             >
-              <FileText className="w-4 h-4 opacity-40" />
+              <FileText className="w-4 h-4 opacity-60" />
               <span className="truncate">{file.name}</span>
-            </div>
+            </button>
           ))}
           {!files?.length && (
-             <div className="py-20 text-center opacity-20">
-                <FileText className="w-12 h-12 mx-auto mb-2" />
-                <p className="text-xs italic">Workspace Empty</p>
-             </div>
+            <p className="py-20 text-center opacity-40 text-xs italic">No files yet — analyze to upload</p>
           )}
-        </div>
+        </motion.div>
       </Card>
 
-      {/* 2. Main Collaborative Analyzer */}
-      <div className="flex-1 min-w-0">
-        <CodeAnalyzer />
-      </div>
-    </div>
+      <motion.div className="flex-1 min-w-0">
+        <CodeAnalyzer
+          projectId={projectId}
+          fileId={selectedFile?.id}
+          initialCode={selectedFile?.content}
+          key={selectedFile?.id ?? 'new'}
+        />
+      </motion.div>
+    </motion.div>
   );
 };

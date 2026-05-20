@@ -81,7 +81,9 @@ public class AnalysisWorker {
             metricsRepository.save(metrics);
 
             String model = (String) message.getOrDefault("model", "AUTO");
-            analyzerService.analyzeCode(file, model);
+            @SuppressWarnings("unchecked")
+            Map<String, Object> executionContext = (Map<String, Object>) message.get("executionContext");
+            analyzerService.analyzeCode(file, model, executionContext);
             
             logger.info("Successfully processed analysis for fileId: {}", fileId);
             publishEvent(fileId, "COMPLETED");

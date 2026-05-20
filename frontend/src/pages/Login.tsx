@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Button, Input, Card } from '../components/ui/core';
-import { Terminal, Lock, Mail, ArrowRight, Globe } from 'lucide-react';
+import { Terminal, Lock, Mail, ArrowRight, Globe, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 export const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -105,13 +105,22 @@ export const Login = () => {
             </div>
 
             {error && (
-              <motion.p
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                className="text-sm text-red-500 bg-red-500/10 p-3 rounded-lg border border-red-500/20"
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="text-xs text-red-400 bg-red-500/10 p-4 rounded-xl border border-red-500/20 space-y-2 shadow-inner"
               >
-                {error}
-              </motion.p>
+                <div className="flex items-center gap-2 font-bold uppercase tracking-wider">
+                  <AlertCircle className="w-4 h-4" />
+                  Access Denied
+                </div>
+                <p className="opacity-80 leading-relaxed">{error}</p>
+                {isLogin && error.includes('not found') && (
+                  <div className="pt-2 mt-2 border-t border-red-500/10 text-[10px] italic">
+                    💡 <span className="font-bold">PRO-TIP:</span> If this is your first time, please use the <b>"Request Access"</b> link below to create an account.
+                  </div>
+                )}
+              </motion.div>
             )}
 
             <Button className="w-full h-12 text-lg gap-2" type="submit" disabled={isLoading}>

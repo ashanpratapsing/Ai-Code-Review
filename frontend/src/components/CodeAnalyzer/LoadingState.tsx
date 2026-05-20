@@ -2,7 +2,11 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Zap, Sparkles } from 'lucide-react';
 
-export const LoadingState = () => {
+interface LoadingStateProps {
+  status?: string;
+}
+
+export const LoadingState: React.FC<LoadingStateProps> = ({ status = 'Analyzing Code Architecture' }) => {
   return (
     <div className="flex flex-col items-center justify-center p-12 space-y-6 animate-in fade-in duration-500">
       <div className="relative">
@@ -19,10 +23,10 @@ export const LoadingState = () => {
       <div className="text-center">
         <h3 className="text-xl font-bold tracking-tight mb-2 flex items-center justify-center gap-2">
           <Sparkles className="w-5 h-5 text-yellow-500" />
-          Analyzing Code Architecture
+          {status}
         </h3>
         <p className="text-sm text-muted-foreground max-w-xs mx-auto animate-pulse">
-          Our AI engine is scanning for vulnerabilities, performance bottlenecks, and refactoring opportunities...
+          Please wait while our FAANG engine compiles reviews, patterns, and complexity analysis...
         </p>
       </div>
 

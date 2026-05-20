@@ -11,7 +11,8 @@ import {
   Code2,
   FileSearch,
   Lightbulb,
-  Cpu
+  Cpu,
+  Globe
 } from 'lucide-react';
 import { Button, Card, Badge } from '../ui/core';
 
@@ -21,7 +22,20 @@ interface AnalysisResultsProps {
 }
 
 export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ results, onReset }) => {
-  const { summary, issues, betterApproach, optimizedCode, faangInsights } = results;
+  const { 
+    summary, 
+    issues, 
+    betterApproach, 
+    optimizedCode, 
+    faangInsights,
+    securityIssues,
+    suggestions,
+    designPattern,
+    edgeCases,
+    scalabilityAnalysis,
+    readabilityScore,
+    maintainabilityScore
+  } = results;
 
   return (
     <div className="space-y-6 animate-in slide-in-from-right-4 duration-500 pb-12">
@@ -52,8 +66,24 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ results, onRes
             <ShieldAlert className="w-5 h-5 text-red-500" />
             <AlertTriangle className="w-5 h-5 text-yellow-500" />
           </div>
-          <span className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2">Issues Found</span>
-          <div className="text-lg font-bold">{issues.length} Items</div>
+          <span className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2">Security & Logic Issues</span>
+          <div className="text-lg font-bold">{(issues?.length || 0) + (securityIssues?.length || 0)} Items</div>
+        </Card>
+
+        <Card className="flex flex-col items-center justify-center p-6 text-center bg-blue-500/5">
+          <span className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2">Readability</span>
+          <div className="text-2xl font-black text-blue-400 mb-1">{readabilityScore}%</div>
+          <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
+            <div className="bg-blue-500 h-full" style={{ width: `${readabilityScore}%` }} />
+          </div>
+        </Card>
+
+        <Card className="flex flex-col items-center justify-center p-6 text-center bg-green-500/5">
+          <span className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2">Maintainability</span>
+          <div className="text-2xl font-black text-green-400 mb-1">{maintainabilityScore}%</div>
+          <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
+            <div className="bg-green-500 h-full" style={{ width: `${maintainabilityScore}%` }} />
+          </div>
         </Card>
       </div>
 
@@ -117,15 +147,88 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ results, onRes
                 <Lightbulb className="w-4 h-4 text-primary" />
                 FAANG Level Insights
               </h4>
-              <Card className="p-5 bg-primary/5 border-primary/10 border-l-4 border-l-primary">
-                <p className="text-sm italic opacity-80 leading-relaxed">
+              <Card className="p-5 bg-primary/5 border-primary/10 border-l-4 border-l-primary relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-2 opacity-10">
+                   <Globe className="w-12 h-12" />
+                </div>
+                <p className="text-sm italic opacity-80 leading-relaxed relative z-10">
                   "{faangInsights}"
                 </p>
+                {designPattern && (
+                  <div className="mt-4 pt-4 border-t border-white/5">
+                    <span className="text-[10px] uppercase text-muted-foreground block mb-1">Architecture Pattern</span>
+                    <Badge variant="outline" className="border-primary/30 text-primary">{designPattern}</Badge>
+                  </div>
+                )}
+              </Card>
+            </div>
+          )}
+
+          {scalabilityAnalysis && (
+            <div className="space-y-4">
+              <h4 className="text-sm font-bold flex items-center gap-2 px-2 text-blue-400">
+                <ArrowRight className="w-4 h-4" />
+                Scalability Analysis
+              </h4>
+              <Card className="p-5 bg-blue-500/5 border-blue-500/10">
+                <p className="text-sm leading-relaxed opacity-80">{scalabilityAnalysis}</p>
               </Card>
             </div>
           )}
         </div>
       </div>
+
+      {/* 4.5. New Analysis Sections: Security & Edge Cases */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+         {securityIssues && securityIssues.length > 0 && (
+           <Card className="p-6 border-red-500/20 bg-red-500/5">
+              <h4 className="text-sm font-bold flex items-center gap-2 mb-4 text-red-400">
+                <ShieldAlert className="w-4 h-4" />
+                Security Vulnerabilities
+              </h4>
+              <div className="space-y-2">
+                {securityIssues.map((issue: string, i: number) => (
+                  <div key={i} className="flex gap-2 text-sm opacity-80">
+                    <span className="text-red-500">•</span>
+                    {issue}
+                  </div>
+                ))}
+              </div>
+           </Card>
+         )}
+         
+         {edgeCases && edgeCases.length > 0 && (
+           <Card className="p-6 border-blue-500/20 bg-blue-500/5">
+              <h4 className="text-sm font-bold flex items-center gap-2 mb-4 text-blue-400">
+                <RotateCcw className="w-4 h-4" />
+                Edge Cases to Consider
+              </h4>
+              <div className="space-y-2">
+                {edgeCases.map((issue: string, i: number) => (
+                  <div key={i} className="flex gap-2 text-sm opacity-80">
+                    <span className="text-blue-500">•</span>
+                    {issue}
+                  </div>
+                ))}
+              </div>
+           </Card>
+         )}
+      </div>
+
+      {/* 4.6 Suggestions Card */}
+      {suggestions && suggestions.length > 0 && (
+        <Card className="p-6 bg-secondary/10 border-white/5">
+          <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">Improvement Suggestions</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+            {suggestions.map((s: string, i: number) => (
+              <div key={i} className="flex items-center gap-2 text-sm opacity-70">
+                <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
+                {s}
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
 
       {/* 5. Optimized Code Block */}
       {optimizedCode && optimizedCode !== 'N/A' && (

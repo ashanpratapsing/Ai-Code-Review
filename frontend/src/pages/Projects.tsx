@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { projectService } from '../services/api';
-import { Card, Button, Input, Badge } from '../components/ui/core';
-import { FolderPlus, Search, Trash2, Code2, Calendar, MoreVertical } from 'lucide-react';
+import { Card, Button, Input } from '../components/ui/core';
+import { FolderPlus, Search, Trash2, Code2, Edit } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const Projects = () => {
@@ -23,9 +23,30 @@ export const Projects = () => {
   });
 
   const filteredProjects = projects?.filter(p => 
-    (p.name?.toLowerCase() || '').includes(search.toLowerCase()) || 
-    (p.language?.toLowerCase() || '').includes(search.toLowerCase())
+    (p.projectName?.toLowerCase() || '').includes(search.toLowerCase()) || 
+    (p.description?.toLowerCase() || '').includes(search.toLowerCase())
   );
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newProject, setNewProject] = useState({ projectName: '', description: '' });
+  const [editingProject, setEditingProject] = useState<any | null>(null);
+
+  const createMutation = useMutation({
+    mutationFn: (data: any) => projectService.createProject(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      setIsModalOpen(false);
+      setNewProject({ projectName: '', description: '' });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => projectService.updateProject(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      setEditingProject(null);
+    },
+  });
 
   return (
     <div className="space-y-8">
@@ -34,11 +55,73 @@ export const Projects = () => {
           <h2 className="text-3xl font-bold tracking-tight mb-2">Projects</h2>
           <p className="text-muted-foreground">Manage your code repositories and review history.</p>
         </div>
-        <Button className="gap-2">
+        <Button className="gap-2" onClick={() => setIsModalOpen(true)}>
           <FolderPlus className="w-4 h-4" />
           New Project
         </Button>
       </div>
+
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <Card className="w-full max-w-md p-6 space-y-4">
+            <h3 className="text-xl font-bold">Create New Project</h3>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Project Name</label>
+              <Input 
+                placeholder="e.g. e-commerce-backend" 
+                value={newProject.projectName}
+                onChange={(e) => setNewProject({...newProject, projectName: e.target.value})}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Description</label>
+              <textarea 
+                className="w-full min-h-[100px] bg-background border rounded-lg p-3 text-sm"
+                placeholder="Briefly describe the project goals..."
+                value={newProject.description}
+                onChange={(e) => setNewProject({...newProject, description: e.target.value})}
+              />
+            </div>
+            <div className="flex gap-3 pt-2">
+              <Button variant="ghost" className="flex-1" onClick={() => setIsModalOpen(false)}>Cancel</Button>
+              <Button className="flex-1" onClick={() => createMutation.mutate(newProject)} disabled={createMutation.isPending}>
+                {createMutation.isPending ? 'Creating...' : 'Create Project'}
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {editingProject && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <Card className="w-full max-w-md p-6 space-y-4">
+            <h3 className="text-xl font-bold">Rename / Edit Project</h3>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Project Name</label>
+              <Input 
+                placeholder="e.g. e-commerce-backend" 
+                value={editingProject.projectName || ''}
+                onChange={(e) => setEditingProject({...editingProject, projectName: e.target.value})}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Description</label>
+              <textarea 
+                className="w-full min-h-[100px] bg-background border rounded-lg p-3 text-sm"
+                placeholder="Briefly describe the project goals..."
+                value={editingProject.description || ''}
+                onChange={(e) => setEditingProject({...editingProject, description: e.target.value})}
+              />
+            </div>
+            <div className="flex gap-3 pt-2">
+              <Button variant="ghost" className="flex-1" onClick={() => setEditingProject(null)}>Cancel</Button>
+              <Button className="flex-1" onClick={() => updateMutation.mutate({ id: editingProject.id, data: { projectName: editingProject.projectName, description: editingProject.description } })} disabled={updateMutation.isPending}>
+                {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -70,23 +153,20 @@ export const Projects = () => {
                     <div className="w-12 h-12 bg-secondary rounded-lg flex items-center justify-center">
                       <Code2 className="text-primary w-6 h-6" />
                     </div>
-                    <Button variant="ghost" size="icon" className="text-muted-foreground">
-                      <MoreVertical className="w-4 h-4" />
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="text-muted-foreground hover:text-primary transition-colors"
+                      onClick={() => setEditingProject(project)}
+                    >
+                      <Edit className="w-4 h-4" />
                     </Button>
                   </div>
 
-                  <h4 className="text-lg font-bold mb-1">{project.name}</h4>
+                  <h4 className="text-lg font-bold mb-1">{project.projectName}</h4>
                   <p className="text-sm text-muted-foreground line-clamp-2 mb-4 flex-1">
                     {project.description || 'No description provided for this project.'}
                   </p>
-
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground mb-4">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-3.5 h-3.5" />
-                      {new Date(project.updatedAt).toLocaleDateString()}
-                    </div>
-                    <Badge variant="outline" className="capitalize">{project.language}</Badge>
-                  </div>
 
                   <div className="flex gap-2">
                     <Button 

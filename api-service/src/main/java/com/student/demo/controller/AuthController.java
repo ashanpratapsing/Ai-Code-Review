@@ -1,9 +1,11 @@
 package com.student.demo.controller;
 
+import com.student.demo.dto.UserDTO;
 import com.student.demo.entity.RefreshToken;
 import com.student.demo.entity.User;
 import com.student.demo.repository.RefreshTokenRepository;
 import com.student.demo.repository.UserRepository;
+import com.student.demo.security.SecurityUtil;
 import com.student.demo.service.TokenService;
 import com.student.demo.service.UserService;
 import jakarta.servlet.http.Cookie;
@@ -23,109 +25,93 @@ public class AuthController {
     private final UserRepository userRepository;
     private final TokenService tokenService;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final SecurityUtil securityUtil;
 
-    public AuthController(UserService userService, UserRepository userRepository, TokenService tokenService, RefreshTokenRepository refreshTokenRepository) {
+    public AuthController(UserService userService,
+                          UserRepository userRepository,
+                          TokenService tokenService,
+                          RefreshTokenRepository refreshTokenRepository,
+                          SecurityUtil securityUtil) {
         this.userService = userService;
         this.userRepository = userRepository;
         this.tokenService = tokenService;
         this.refreshTokenRepository = refreshTokenRepository;
+        this.securityUtil = securityUtil;
     }
 
     @PostMapping("/signup")
-    public User register(@RequestBody User user) {
-        return userService.register(user);
+    public UserDTO register(@RequestBody User user) {
+        return UserDTO.from(userService.register(user));
     }
 
     @PostMapping("/login")
     public Map<String, Object> login(@RequestBody User user, HttpServletResponse response) {
-
-        if (user.getEmail() == null || user.getEmail().isEmpty()) {
-            throw new RuntimeException("Email is required");
+        if (user.getEmail() == null || user.getEmail().isBlank()) {
+            throw new IllegalArgumentException("Email is required");
+        }
+        if (user.getPassword() == null || user.getPassword().isBlank()) {
+            throw new IllegalArgumentException("Password is required");
         }
 
         User existingUser = userRepository.findByEmail(user.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found with email: " + user.getEmail()));
+                .orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
 
-        if (!existingUser.getPassword().equals(user.getPassword())) {
-            throw new RuntimeException("Invalid password");
+        if (!userService.matchesPassword(existingUser, user.getPassword())) {
+            throw new IllegalArgumentException("Invalid email or password");
+        }
+
+        if (existingUser.getPassword() != null && !existingUser.getPassword().startsWith("$2")) {
+            userService.upgradeLegacyPassword(existingUser, user.getPassword());
         }
 
         setAuthCookies(response, existingUser);
 
         Map<String, Object> responseBody = new HashMap<>();
-        responseBody.put("user", existingUser);
+        responseBody.put("user", UserDTO.from(existingUser));
         return responseBody;
     }
 
     @PostMapping("/refresh")
     public Map<String, Object> refresh(HttpServletRequest request, HttpServletResponse response) {
-        String refreshToken = null;
-        if (request.getCookies() != null) {
-            for (Cookie cookie : request.getCookies()) {
-                if ("refresh_token".equals(cookie.getName())) {
-                    refreshToken = cookie.getValue();
-                }
-            }
-        }
-
+        String refreshToken = extractCookie(request, "refresh_token");
         if (refreshToken == null) {
-            throw new RuntimeException("Refresh token missing");
+            throw new IllegalArgumentException("Refresh token missing");
         }
 
-        RefreshToken tokenEntity = refreshTokenRepository.findByTokenHash(refreshToken)
-                .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
+        String tokenHash = tokenService.hashRefreshToken(refreshToken);
+        RefreshToken tokenEntity = refreshTokenRepository.findByTokenHash(tokenHash)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid refresh token"));
 
         if (tokenEntity.isRevoked() || tokenEntity.getExpiresAt().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Refresh token expired or revoked");
+            throw new IllegalArgumentException("Refresh token expired or revoked");
         }
 
-        // Rotate token
         tokenEntity.setRevoked(true);
         refreshTokenRepository.save(tokenEntity);
 
         setAuthCookies(response, tokenEntity.getUser());
 
-        Map<String, Object> responseBody = new HashMap<>();
-        responseBody.put("message", "Token refreshed successfully");
-        return responseBody;
+        return Map.of("message", "Token refreshed successfully");
     }
 
     @PostMapping("/logout")
     public Map<String, String> logout(HttpServletRequest request, HttpServletResponse response) {
-        String refreshToken = null;
-        if (request.getCookies() != null) {
-            for (Cookie cookie : request.getCookies()) {
-                if ("refresh_token".equals(cookie.getName())) {
-                    refreshToken = cookie.getValue();
-                }
-            }
-        }
-
+        String refreshToken = extractCookie(request, "refresh_token");
         if (refreshToken != null) {
-            refreshTokenRepository.findByTokenHash(refreshToken).ifPresent(token -> {
-                tokenService.revokeTokensForUser(token.getUser());
-            });
+            String tokenHash = tokenService.hashRefreshToken(refreshToken);
+            refreshTokenRepository.findByTokenHash(tokenHash).ifPresent(token ->
+                    tokenService.revokeTokensForUser(token.getUser()));
         }
 
-        Cookie accessCookie = new Cookie("access_token", "");
-        accessCookie.setPath("/");
-        accessCookie.setMaxAge(0);
-        response.addCookie(accessCookie);
-
-        Cookie refreshCookie = new Cookie("refresh_token", "");
-        refreshCookie.setPath("/auth/refresh");
-        refreshCookie.setMaxAge(0);
-        response.addCookie(refreshCookie);
+        clearCookie(response, "access_token", "/");
+        clearCookie(response, "refresh_token", "/auth/refresh");
 
         return Map.of("message", "Logged out successfully");
     }
-    
+
     @GetMapping("/me")
-    public User getCurrentUser(org.springframework.security.core.Authentication authentication) {
-        if (authentication == null || authentication.getName() == null) {
-             throw new RuntimeException("Not authenticated");
-        }
-        return userRepository.findByEmail(authentication.getName()).orElseThrow(() -> new RuntimeException("User not found"));
+    public UserDTO getCurrentUser() {
+        return UserDTO.from(securityUtil.requireCurrentUser());
     }
 
     @GetMapping("/verify")
@@ -148,14 +134,33 @@ public class AuthController {
         Cookie accessCookie = new Cookie("access_token", accessToken);
         accessCookie.setHttpOnly(true);
         accessCookie.setPath("/");
-        accessCookie.setMaxAge(15 * 60); // 15 mins
+        accessCookie.setMaxAge(15 * 60);
 
         Cookie refreshCookie = new Cookie("refresh_token", refreshToken);
         refreshCookie.setHttpOnly(true);
         refreshCookie.setPath("/auth/refresh");
-        refreshCookie.setMaxAge(7 * 24 * 60 * 60); // 7 days
+        refreshCookie.setMaxAge(7 * 24 * 60 * 60);
 
         response.addCookie(accessCookie);
         response.addCookie(refreshCookie);
+    }
+
+    private String extractCookie(HttpServletRequest request, String name) {
+        if (request.getCookies() == null) {
+            return null;
+        }
+        for (Cookie cookie : request.getCookies()) {
+            if (name.equals(cookie.getName())) {
+                return cookie.getValue();
+            }
+        }
+        return null;
+    }
+
+    private void clearCookie(HttpServletResponse response, String name, String path) {
+        Cookie cookie = new Cookie(name, "");
+        cookie.setPath(path);
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
     }
 }

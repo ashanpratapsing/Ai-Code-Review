@@ -1,0 +1,2 @@
+ALTER TABLE metrics ADD COLUMN IF NOT EXISTS code_quality TEXT;
+ALTER TABLE metrics ADD COLUMN IF NOT EXISTS explanation TEXT;
