@@ -61,8 +61,24 @@ export const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttribute
 );
 
 // Card Component
-export const Card = ({ className, children }: { className?: string; children: React.ReactNode }) => (
-  <div className={cn('glass rounded-xl p-6', className)}>{children}</div>
+export const Card = ({
+  className,
+  children,
+  onClick,
+}: {
+  className?: string;
+  children: React.ReactNode;
+  onClick?: () => void;
+}) => (
+  <div
+    className={cn('glass rounded-xl p-6', onClick && 'cursor-pointer', className)}
+    onClick={onClick}
+    role={onClick ? 'button' : undefined}
+    tabIndex={onClick ? 0 : undefined}
+    onKeyDown={onClick ? (e) => e.key === 'Enter' && onClick() : undefined}
+  >
+    {children}
+  </div>
 );
 
 // Badge Component

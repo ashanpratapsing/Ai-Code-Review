@@ -10,12 +10,16 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.List;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    @Value("${app.frontend.url:http://localhost:5173}")
+    private String frontendUrl;
 
     private final OAuth2SuccessHandler successHandler;
     private final org.springframework.security.oauth2.server.resource.web.BearerTokenResolver bearerTokenResolver;
@@ -48,7 +52,11 @@ public class SecurityConfig {
     public UrlBasedCorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.setAllowedOriginPatterns(List.of("*"));
+        if (frontendUrl != null && frontendUrl.contains(",")) {
+            config.setAllowedOrigins(java.util.Arrays.asList(frontendUrl.split(",")));
+        } else {
+            config.setAllowedOrigins(List.of(frontendUrl));
+        }
         config.setAllowedHeaders(List.of("*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 

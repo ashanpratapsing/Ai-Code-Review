@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { api, aiService, codeService, historyService } from '../../../services/api';
 import type { AnalysisContext, AnalysisResult } from '../../../types';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost/api';
 
 export const useCodeAnalysis = (projectId?: number, existingFileId?: number) => {
   const [loading, setLoading] = useState(false);
@@ -92,6 +92,10 @@ export const useCodeAnalysis = (projectId?: number, existingFileId?: number) => 
           performanceIssues: enhancedMetrics.performanceIssues ?? [],
           bestPractices: enhancedMetrics.bestPractices ?? [],
           scalabilityAnalysis: enhancedMetrics.scalabilityAnalysis,
+          concurrencyAnalysis: enhancedMetrics.concurrencyAnalysis,
+          collectionAnalysis: enhancedMetrics.collectionAnalysis,
+          graphAnalysis: enhancedMetrics.graphAnalysis,
+          runtimeAnalysis: enhancedMetrics.runtimeAnalysis,
           readabilityScore: enhancedMetrics.readabilityScore,
           maintainabilityScore: enhancedMetrics.maintainabilityScore,
           explanation: enhancedMetrics.explanation,

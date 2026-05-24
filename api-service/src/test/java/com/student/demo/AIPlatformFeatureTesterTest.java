@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 public class AIPlatformFeatureTesterTest {
 
-    private static final String BASE_URL = "http://localhost:8088";
+    private static final String BASE_URL = "http://localhost:8080";
     private static final HttpClient client = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(10))
             .build();
@@ -35,6 +35,7 @@ public class AIPlatformFeatureTesterTest {
             long projectId = runProjectFlow();
             long fileId = runFileUpload(projectId);
             runAnalysisFlow(fileId);
+            runCodeExecutionFlow();
         } else {
             fail("❌ Server failed to start within the timeout period. Test aborted.");
         }
@@ -224,6 +225,45 @@ public class AIPlatformFeatureTesterTest {
             fail("AI Analysis timed out.");
         } catch (Exception e) {
             fail("Analysis Flow Error: " + e.getMessage());
+        }
+    }
+
+    private void runCodeExecutionFlow() {
+        System.out.println("▶ Testing Code Execution Engine (Java Sandbox compilation & run)...");
+        try {
+            String code = "import java.util.Scanner;\\npublic class Solution {\\n    public static void main(String[] args) {\\n        Scanner sc = new Scanner(System.in);\\n        int a = sc.nextInt();\\n        int b = sc.nextInt();\\n        System.out.println(\\\"Sum is \\\" + (a + b));\\n    }\\n}";
+            String requestJson = "{"
+                    + "\"code\":\"" + code + "\","
+                    + "\"language\":\"JAVA\","
+                    + "\"testCases\":[{"
+                    + "\"id\":1,"
+                    + "\"input\":\"12 23\","
+                    + "\"expectedOutput\":\"Sum is 35\""
+                    + "}]"
+                    + "}";
+
+            HttpRequest req = HttpRequest.newBuilder()
+                    .uri(URI.create(BASE_URL + "/execute"))
+                    .header("Content-Type", "application/json")
+                    .header("Authorization", "Bearer " + accessToken)
+                    .POST(HttpRequest.BodyPublishers.ofString(requestJson))
+                    .build();
+
+            HttpResponse<String> res = client.send(req, HttpResponse.BodyHandlers.ofString());
+            System.out.println("  [DIAG] Code Execution Status: " + res.statusCode() + " Response: " + res.body());
+
+            if (res.statusCode() == 200) {
+                String body = res.body();
+                if (body.contains("\"status\":\"SUCCESS\"") && body.contains("\"status\":\"PASSED\"") && body.contains("Sum is 35")) {
+                    System.out.println("  [PASS] Code execution sandbox test passed successfully!");
+                } else {
+                    fail("Code execution sandbox result verification failed: " + body);
+                }
+            } else {
+                fail("Code execution request failed with status: " + res.statusCode() + " -> " + res.body());
+            }
+        } catch (Exception e) {
+            fail("Exception in Code Execution Flow: " + e.getMessage());
         }
     }
 

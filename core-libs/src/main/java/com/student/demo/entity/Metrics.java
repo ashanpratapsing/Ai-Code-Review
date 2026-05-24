@@ -76,6 +76,18 @@ public class Metrics {
     @Column(columnDefinition = "TEXT")
     private String scalabilityAnalysis;
 
+    @Column(columnDefinition = "TEXT")
+    private String concurrencyAnalysis;
+
+    @Column(columnDefinition = "TEXT")
+    private String collectionAnalysis;
+
+    @Column(columnDefinition = "TEXT")
+    private String graphAnalysis;
+
+    @Column(columnDefinition = "TEXT")
+    private String runtimeAnalysis;
+
     private int readabilityScore;
     private int maintainabilityScore;
 
@@ -84,7 +96,7 @@ public class Metrics {
 
     private int retryCount = 0;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "code_file_id")
     private CodeFile codeFile;
 
@@ -142,6 +154,18 @@ public class Metrics {
     public void setBestPractices(String bestPractices) { this.bestPractices = bestPractices; }
     public String getScalabilityAnalysis() { return scalabilityAnalysis; }
     public void setScalabilityAnalysis(String scalabilityAnalysis) { this.scalabilityAnalysis = scalabilityAnalysis; }
+
+    public String getConcurrencyAnalysis() { return concurrencyAnalysis; }
+    public void setConcurrencyAnalysis(String concurrencyAnalysis) { this.concurrencyAnalysis = concurrencyAnalysis; }
+
+    public String getCollectionAnalysis() { return collectionAnalysis; }
+    public void setCollectionAnalysis(String collectionAnalysis) { this.collectionAnalysis = collectionAnalysis; }
+
+    public String getGraphAnalysis() { return graphAnalysis; }
+    public void setGraphAnalysis(String graphAnalysis) { this.graphAnalysis = graphAnalysis; }
+
+    public String getRuntimeAnalysis() { return runtimeAnalysis; }
+    public void setRuntimeAnalysis(String runtimeAnalysis) { this.runtimeAnalysis = runtimeAnalysis; }
     public int getReadabilityScore() { return readabilityScore; }
     public void setReadabilityScore(int readabilityScore) { this.readabilityScore = readabilityScore; }
     public int getMaintainabilityScore() { return maintainabilityScore; }

@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 
 public class AIPlatformFeatureTester {
 
-    private static final String BASE_URL = "http://localhost:8088";
+    private static final String BASE_URL = "http://localhost:8080";
     private static final HttpClient client = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(10))
             .build();

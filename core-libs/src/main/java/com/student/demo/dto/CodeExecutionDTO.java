@@ -1,5 +1,4 @@
 package com.student.demo.dto;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,7 +9,9 @@ public class CodeExecutionDTO {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class ExecutionRequest {
+    public static class ExecutionRequest implements java.io.Serializable {
+        private static final long serialVersionUID = 1L;
+        private Long executionId;
         private String code;
         private String language;
         private List<TestCase> testCases;
@@ -20,7 +21,8 @@ public class CodeExecutionDTO {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class TestCase {
+    public static class TestCase implements java.io.Serializable {
+        private static final long serialVersionUID = 1L;
         private int id;
         private String input;
         private String expectedOutput;
@@ -29,7 +31,8 @@ public class CodeExecutionDTO {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class ExecutionResponse {
+    public static class ExecutionResponse implements java.io.Serializable {
+        private static final long serialVersionUID = 1L;
         private Long executionId;
         private String status; // SUCCESS, COMPILE_ERROR, ERROR
         private String compileError;
@@ -39,7 +42,8 @@ public class CodeExecutionDTO {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class TestCaseResult {
+    public static class TestCaseResult implements java.io.Serializable {
+        private static final long serialVersionUID = 1L;
         private int id;
         private String status; // PASSED, FAILED, RUNTIME_ERROR, TIMEOUT
         private String actualOutput;

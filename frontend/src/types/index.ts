@@ -74,6 +74,10 @@ export interface AnalysisResult {
   timeComplexity?: string;
   spaceComplexity?: string;
   rootCause?: string;
+  concurrencyAnalysis?: string;
+  collectionAnalysis?: string;
+  graphAnalysis?: string;
+  runtimeAnalysis?: string;
 }
 
 export interface DashboardSummary {
@@ -94,7 +98,7 @@ export interface HistoryItem {
   codeSnippet: string;
   resultJson: string;
   score?: number;
-  createdAt: string;
+  createdAt: string | number[];
   projectId?: number;
   codeFileId?: number;
 }

@@ -81,6 +81,10 @@ public class CodeAnalyzerController {
         res.put("bestPractices", m.getBestPractices() != null ? Arrays.asList(m.getBestPractices().split("\n")) : Collections.emptyList());
         res.put("codeSmells", m.getCodeSmells() != null ? Arrays.asList(m.getCodeSmells().split("\n")) : Collections.emptyList());
         res.put("scalabilityAnalysis", m.getScalabilityAnalysis());
+        res.put("concurrencyAnalysis", m.getConcurrencyAnalysis());
+        res.put("collectionAnalysis", m.getCollectionAnalysis());
+        res.put("graphAnalysis", m.getGraphAnalysis());
+        res.put("runtimeAnalysis", m.getRuntimeAnalysis());
         res.put("readabilityScore", m.getReadabilityScore());
         res.put("maintainabilityScore", m.getMaintainabilityScore());
         res.put("timeComplexity", m.getTimeComplexity());

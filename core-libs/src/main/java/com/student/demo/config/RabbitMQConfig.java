@@ -22,6 +22,9 @@ public class RabbitMQConfig {
     
     public static final String FAILED_QUEUE_NAME = "code.failed.queue";
 
+    public static final String EXECUTION_QUEUE_NAME = "code.execution.queue";
+    public static final String EXECUTION_ROUTING_KEY = "code.execution.routing.key";
+
     @Bean
     public TopicExchange mainExchange() {
         return new TopicExchange(EXCHANGE_NAME);
@@ -55,6 +58,19 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    public Queue executionQueue() {
+        return QueueBuilder.durable(EXECUTION_QUEUE_NAME)
+                .withArgument("x-dead-letter-exchange", RETRY_EXCHANGE_NAME)
+                .withArgument("x-dead-letter-routing-key", EXECUTION_ROUTING_KEY)
+                .build();
+    }
+
+    @Bean
+    public Binding executionBinding() {
+        return BindingBuilder.bind(executionQueue()).to(mainExchange()).with(EXECUTION_ROUTING_KEY);
+    }
+
+    @Bean
     public Binding mainBinding() {
         return BindingBuilder.bind(mainQueue()).to(mainExchange()).with(ROUTING_KEY);
     }
@@ -70,9 +86,10 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    public AmqpTemplate amqpTemplate(ConnectionFactory connectionFactory) {
-        final RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
-        rabbitTemplate.setMessageConverter(jsonMessageConverter());
-        return rabbitTemplate;
+    public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
+        final RabbitTemplate template = new RabbitTemplate(connectionFactory);
+        template.setMessageConverter(jsonMessageConverter());
+        template.setReplyTimeout(30000L);
+        return template;
     }
 }

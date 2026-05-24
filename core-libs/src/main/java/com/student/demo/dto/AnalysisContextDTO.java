@@ -1,10 +1,11 @@
 package com.student.demo.dto;
 
 import com.student.demo.dto.CodeExecutionDTO.TestCaseResult;
-
+import java.io.Serializable;
 import java.util.List;
 
-public class AnalysisContextDTO {
+public class AnalysisContextDTO implements Serializable {
+    private static final long serialVersionUID = 1L;
     private String executionStatus;
     private String compileError;
     private List<TestCaseResult> executionResults;

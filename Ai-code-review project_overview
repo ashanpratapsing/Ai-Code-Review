@@ -1,0 +1,75 @@
+# AI Code Review Platform Overview
+
+## 📖 About this Project
+The **AI Code Review Platform** is a production-grade, FAANG-standard full-stack application designed to provide automated, AI-driven code quality analysis. It serves as a comprehensive tool for developers to upload source code, receive real-time metrics, identify bugs, and get AI-powered refactoring suggestions. The platform is designed with a focus on observability, high availability, and scalability.
+
+---
+
+## 🏗️ System Design & Architecture
+
+The project implements a classic **Micro-Infrastructure Architecture** relying on distinct services working together to handle authentication, data storage, asynchronous processing, and real-time observability.
+
+### Core Components (Six-Service Stack)
+
+1. **Backend Core (`api-service` & `worker-service`)**
+   - **Framework:** Spring Boot 3.x (Java 17/21)
+   - **Role:** The `api-service` acts as the primary REST API handling user authentication (JWT), project management, and file uploads. The `worker-service` handles the heavy lifting by performing the actual AI code analysis asynchronously.
+
+2. **Database (PostgreSQL 16)**
+   - **Role:** Primary relational data storage. It stores user profiles, project metadata, code files, and the generated analysis metrics securely.
+
+3. **Cache & Session Management (Redis 7)**
+   - **Role:** Highly performant transient data storage used for caching results and facilitating Pub/Sub mechanisms for real-time progress updates (Server-Sent Events) to the frontend.
+
+4. **Message Queue (RabbitMQ 3)**
+   - **Role:** Handles asynchronous task orchestration. When code is uploaded for review, the `api-service` queues the task in RabbitMQ, which is then picked up and processed by the `worker-service`. This decouples the analysis engine from the API, ensuring scalability.
+
+5. **Monitoring (Prometheus)**
+   - **Role:** Scrapes time-series metrics from the Spring Boot Actuator endpoints (e.g., JVM memory, active requests, database connection pools) to monitor system health and performance.
+
+6. **Observability Dashboard (Grafana)**
+   - **Role:** Connects to Prometheus to provide unified, visual dashboards for real-time performance and system health tracking.
+
+7. **Frontend Application**
+   - **Framework:** React with Vite
+   - **Role:** A high-fidelity user interface featuring the Monaco Editor for code input, interactive dashboards for viewing metrics, complexity scores, and AI suggestions.
+
+---
+
+## ⚙️ Architectural Flow (How it works)
+
+```mermaid
+graph TD
+    Client[React Frontend] -->|REST / JWT| API[API Service]
+    API -->|Save Code| DB[(PostgreSQL)]
+    API -->|Queue Analysis Task| MQ[RabbitMQ]
+    
+    MQ -->|Consume Task| Worker[Worker Service]
+    Worker -->|Analyze Code| AI[AI Models / Heuristics]
+    Worker -->|Update Status| Redis[(Redis Pub/Sub)]
+    Worker -->|Save Results| DB
+    
+    Redis -->|SSE Updates| API
+    API -->|Real-time Status| Client
+    
+    Prometheus -->|Scrape Metrics| API
+    Prometheus -->|Scrape Metrics| Worker
+    Grafana -->|Visualize| Prometheus
+```
+
+### 1. Authentication Handshake
+- Users securely register and log in via the `api-service`.
+- The system uses **Stateless Tokens** (RSA-signed JWTs) for all subsequent authenticated communication, ensuring secure access.
+
+### 2. Project & File Flow
+- Users create projects and upload source code snippets through the React frontend.
+- The `api-service` securely stores the raw code in the PostgreSQL database and immediately returns an acknowledgment to the user.
+
+### 3. Asynchronous AI Analysis Vector
+- Once code is uploaded, an analysis request is pushed to RabbitMQ.
+- The `worker-service` picks up the task, applies static heuristics, or queries AI providers (e.g., OpenAI, Groq) to evaluate the code for space/time complexity, bugs, security vulnerabilities, and optimal design patterns.
+- Progress updates are sent through **Redis Pub/Sub**, which the `api-service` streams back to the frontend using Server-Sent Events (SSE) so the user sees real-time progress.
+
+### 4. Observability
+- All infrastructure components (DB, MQ, Cache) are isolated within a dedicated Docker network.
+- Prometheus constantly scrapes health data, while Grafana gives administrators a real-time window into the system's operational stability.

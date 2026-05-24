@@ -1,3 +1,4 @@
+import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
 import { dashboardService } from '../services/api';
@@ -38,7 +39,7 @@ const StatCard = ({
       >
         <Icon size={80} />
       </motion.div>
-      <motion.div className="relative z-10">
+      <div className="relative z-10">
         <p className="text-muted-foreground text-sm font-medium mb-1">{title}</p>
         <div className="flex items-end gap-2">
           <h3 className="text-3xl font-bold">{value ?? 0}</h3>
@@ -47,8 +48,8 @@ const StatCard = ({
               {hint}
             </Badge>
           )}
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
     </Card>
   </motion.div>
 );
@@ -100,7 +101,7 @@ export const Dashboard = () => {
               <TrendingUp className="w-4 h-4 text-primary" />
               Your Activity (7 days)
             </h4>
-          </motion.div>
+          </div>
           <div className="h-[300px] w-full p-6">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={summary?.activityData ?? []}>
@@ -121,16 +122,16 @@ export const Dashboard = () => {
                 <Area type="monotone" dataKey="files" stroke="#8b5cf6" fill="transparent" strokeDasharray="5 5" />
               </AreaChart>
             </ResponsiveContainer>
-          </motion.div>
+          </div>
         </Card>
 
         <Card className="p-0 overflow-hidden border-white/5">
-          <motion.div className="p-6 border-b border-white/5 flex items-center justify-between">
+          <div className="p-6 border-b border-white/5 flex items-center justify-between">
             <h4 className="font-semibold flex items-center gap-2">
               <Clock className="w-4 h-4 text-purple-500" />
               Analysis & Execution Mix
             </h4>
-          </motion.div>
+          </div>
           <div className="h-[300px] w-full p-6">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={summary?.issueDistribution ?? []}>

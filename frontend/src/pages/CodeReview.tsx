@@ -39,7 +39,7 @@ export const CodeReview = () => {
             <Code2 className="w-4 h-4 text-primary" />
             Project Files
           </h5>
-        </motion.div>
+        </div>
 
         <div className="flex-1 overflow-y-auto p-3 space-y-1">
           {files?.map((file) => (
@@ -60,17 +60,17 @@ export const CodeReview = () => {
           {!files?.length && (
             <p className="py-20 text-center opacity-40 text-xs italic">No files yet — analyze to upload</p>
           )}
-        </motion.div>
+        </div>
       </Card>
 
-      <motion.div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0">
         <CodeAnalyzer
           projectId={projectId}
           fileId={selectedFile?.id}
           initialCode={selectedFile?.content}
           key={selectedFile?.id ?? 'new'}
         />
-      </motion.div>
+      </div>
     </motion.div>
   );
 };

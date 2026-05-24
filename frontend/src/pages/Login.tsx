@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { Button, Input, Card } from '../components/ui/core';
 import { Terminal, Lock, Mail, ArrowRight, Globe, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { oauthUrl } from '../services/api';
 export const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [name, setName] = useState('');
@@ -139,7 +140,7 @@ export const Login = () => {
               <Button 
                 variant="outline" 
                 className="w-full gap-2"
-                onClick={() => window.location.href = 'http://localhost:8080/oauth2/authorization/github'}
+                onClick={() => window.location.href = oauthUrl('github')}
               >
                 <Globe className="w-5 h-5" />
                 GitHub
@@ -147,7 +148,7 @@ export const Login = () => {
               <Button 
                 variant="outline" 
                 className="w-full gap-2"
-                onClick={() => window.location.href = 'http://localhost:8080/oauth2/authorization/google'}
+                onClick={() => window.location.href = oauthUrl('google')}
               >
                 <Globe className="w-5 h-5" />
                 Google

@@ -12,7 +12,9 @@ import {
   FileSearch,
   Lightbulb,
   Cpu,
-  Globe
+  Globe,
+  ClipboardList,
+  Terminal
 } from 'lucide-react';
 import { Button, Card, Badge } from '../ui/core';
 
@@ -34,7 +36,11 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ results, onRes
     edgeCases,
     scalabilityAnalysis,
     readabilityScore,
-    maintainabilityScore
+    maintainabilityScore,
+    concurrencyAnalysis,
+    collectionAnalysis,
+    graphAnalysis,
+    runtimeAnalysis
   } = results;
 
   return (
@@ -214,6 +220,53 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ results, onRes
            </Card>
          )}
       </div>
+
+      {/* 4.5.5. Advanced Dynamic Code Intelligence Cards */}
+      {(concurrencyAnalysis || collectionAnalysis || graphAnalysis || runtimeAnalysis) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+           {concurrencyAnalysis && concurrencyAnalysis.trim() && (
+             <Card className="p-6 border-purple-500/20 bg-purple-500/5">
+                <h4 className="text-sm font-bold flex items-center gap-2 mb-4 text-purple-400">
+                  <Cpu className="w-4 h-4" />
+                  Concurrency Analysis
+                </h4>
+                <p className="text-sm leading-relaxed opacity-95">{concurrencyAnalysis}</p>
+             </Card>
+           )}
+
+           {collectionAnalysis && collectionAnalysis.trim() && (
+             <Card className="p-6 border-cyan-500/20 bg-cyan-500/5">
+                <h4 className="text-sm font-bold flex items-center gap-2 mb-4 text-cyan-400">
+                  <ClipboardList className="w-4 h-4" />
+                  Collection Intelligence
+                </h4>
+                <p className="text-sm leading-relaxed opacity-95">{collectionAnalysis}</p>
+             </Card>
+           )}
+
+           {graphAnalysis && graphAnalysis.trim() && (
+             <Card className="p-6 border-green-500/20 bg-green-500/5">
+                <h4 className="text-sm font-bold flex items-center gap-2 mb-4 text-green-400">
+                  <Globe className="w-4 h-4" />
+                  Graph Algorithm Analysis
+                </h4>
+                <p className="text-sm leading-relaxed opacity-95">{graphAnalysis}</p>
+             </Card>
+           )}
+
+           {runtimeAnalysis && runtimeAnalysis.trim() && (
+             <Card className="p-6 border-[#00e676]/20 bg-[#00e676]/5 font-mono">
+                <h4 className="text-sm font-bold flex items-center gap-2 mb-4 text-[#00e676]">
+                  <Terminal className="w-4 h-4" />
+                  Runtime Performance & Output
+                </h4>
+                <pre className="text-xs opacity-90 whitespace-pre-wrap leading-relaxed">
+                  {runtimeAnalysis}
+                </pre>
+             </Card>
+           )}
+        </div>
+      )}
 
       {/* 4.6 Suggestions Card */}
       {suggestions && suggestions.length > 0 && (

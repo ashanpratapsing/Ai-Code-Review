@@ -24,4 +24,8 @@ public class AnalysisResponse {
     private String scalabilityAnalysis;
     private String readabilityScore;
     private String maintainabilityScore;
+    private String concurrencyAnalysis;
+    private String collectionAnalysis;
+    private String graphAnalysis;
+    private String runtimeAnalysis;
 }

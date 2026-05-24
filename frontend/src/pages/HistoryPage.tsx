@@ -13,14 +13,7 @@ import {
 } from 'lucide-react';
 import { Card, Badge, Button, Modal } from '../components/ui/core';
 import { AnalysisResults } from '../components/CodeAnalyzer/AnalysisResults';
-
-interface HistoryItem {
-  id: number;
-  codeSnippet: string;
-  resultJson: string;
-  score: number;
-  createdAt: string | number[];
-}
+import type { HistoryItem } from '../types';
 
 export const HistoryPage: React.FC = () => {
   const [selectedItem, setSelectedItem] = React.useState<HistoryItem | null>(null);
@@ -105,8 +98,8 @@ export const HistoryPage: React.FC = () => {
                   <div className="space-y-1">
                     <div className="flex items-center gap-3">
                       <span className="font-bold text-lg">Analysis #{item.id}</span>
-                      <Badge variant={item.score > 7 ? 'success' : item.score > 4 ? 'warning' : 'error'}>
-                         Score: {item.score}/10
+                      <Badge variant={(item.score ?? 0) > 7 ? 'success' : (item.score ?? 0) > 4 ? 'warning' : 'error'}>
+                         Score: {item.score ?? '—'}/10
                       </Badge>
                     </div>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
