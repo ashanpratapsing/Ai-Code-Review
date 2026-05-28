@@ -69,6 +69,26 @@ const DEFAULT_TEST_CASES: TestCase[] = [
   { id: 2, input: "100 250", expectedOutput: "350" }
 ];
 
+const detectsInput = (codeText: string, lang: string): boolean => {
+  const normalized = codeText.toLowerCase();
+  if (lang === 'java') {
+    return normalized.includes('scanner') || 
+           normalized.includes('system.in') || 
+           normalized.includes('bufferedreader') || 
+           normalized.includes('inputstreamreader');
+  } else if (lang === 'python') {
+    return normalized.includes('input(') || 
+           normalized.includes('input ()') ||
+           normalized.includes('sys.stdin') || 
+           normalized.includes('open(0)');
+  } else if (lang === 'javascript' || lang === 'typescript') {
+    return normalized.includes('readfilesync(') || 
+           normalized.includes('readline') || 
+           normalized.includes('process.stdin');
+  }
+  return false;
+};
+
 export const CodeInput: React.FC<CodeInputProps> = ({ onAnalyze, isLoading, initialCode, codeFileId }) => {
   const [code, setCode] = useState(() => initialCode || localStorage.getItem('last_code') || JAVA_DEFAULT);
   const [language, setLanguage] = useState('java');
@@ -95,6 +115,28 @@ export const CodeInput: React.FC<CodeInputProps> = ({ onAnalyze, isLoading, init
       }
     }
   }, [language]);
+
+  // Handle dynamic testcase resetting based on input detection
+  useEffect(() => {
+    const hasInput = detectsInput(code, language);
+    const isDefaultCode = code.trim() === JAVA_DEFAULT.trim() || 
+                          code.trim() === PYTHON_DEFAULT.trim() || 
+                          code.trim() === JS_DEFAULT.trim();
+
+    const isDefaultTestCases = 
+      testCases.length === 2 &&
+      testCases[0].input === "5 10" &&
+      testCases[0].expectedOutput === "15" &&
+      testCases[1].input === "100 250" &&
+      testCases[1].expectedOutput === "350";
+
+    if (isDefaultCode) {
+      setTestCases(DEFAULT_TEST_CASES);
+    } else if (!hasInput && isDefaultTestCases) {
+      // Reset to a single empty test case so code runs without failing on math testcases
+      setTestCases([{ id: 1, input: '', expectedOutput: '' }]);
+    }
+  }, [code, language]);
 
   useEffect(() => {
     localStorage.setItem('last_code', code);
@@ -349,6 +391,12 @@ export const CodeInput: React.FC<CodeInputProps> = ({ onAnalyze, isLoading, init
               <div className="flex-1 p-4 overflow-y-auto bg-black/5">
                 {activeTestCase ? (
                   <div className="grid grid-cols-2 gap-4 h-full">
+                    {!detectsInput(code, language) && (
+                      <div className="col-span-2 px-3 py-2 bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 rounded-lg text-[10px] flex items-center gap-2">
+                        <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                        <span>No standard input usage (like Scanner or sys.stdin) detected in your code. Inputs provided below will be ignored by your program.</span>
+                      </div>
+                    )}
                     <div className="flex flex-col space-y-2">
                       <label className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Standard Input (stdin)</label>
                       <textarea 
@@ -363,7 +411,7 @@ export const CodeInput: React.FC<CodeInputProps> = ({ onAnalyze, isLoading, init
                       <textarea 
                         value={activeTestCase.expectedOutput}
                         onChange={(e) => updateTestCase(activeTestCase.id, 'expectedOutput', e.target.value)}
-                        placeholder="Provide expected matching stdout..."
+                        placeholder="Provide expected matching stdout (leave empty to skip validation)..."
                         className="flex-1 w-full bg-[#070709] border border-white/5 rounded-xl p-3 text-xs font-mono focus:outline-none focus:border-primary/55 resize-none text-foreground"
                       />
                     </div>

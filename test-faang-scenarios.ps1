@@ -25,6 +25,8 @@ function Call-API($path, $method, $body = $null, $token = $null) {
     }
     if ($body) {
         $params.Add("Body", ($body | ConvertTo-Json -Depth 10))
+    } elseif ($method -eq "POST" -or $method -eq "PUT") {
+        $params.Add("Body", "{}")
     }
     
     return Invoke-RestMethod @params
@@ -77,7 +79,7 @@ function Run-Review-Cycle($filename, $code, $execCtx = $null) {
     
     # Trigger Analysis
     Write-Host ("Triggering analysis for " + $filename + " ID: " + $fileId + "...")
-    Call-API "/analyze/$fileId?model=AUTO" "POST" $execCtx $token | Out-Null
+    Call-API "/analyze/${fileId}?model=AUTO" "POST" $execCtx $token | Out-Null
     
     # Poll for completion
     Write-Host "Polling for metrics completion..."

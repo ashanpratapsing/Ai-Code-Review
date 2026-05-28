@@ -260,7 +260,7 @@ public class ExecutionWorker {
                 result.setError(errorOutput.isEmpty() ? "Process exited with code: " + exitCode : errorOutput);
             } else {
                 String expected = tc.getExpectedOutput() != null ? tc.getExpectedOutput().trim() : "";
-                if (actualOutput.equals(expected)) {
+                if (expected.isEmpty() || actualOutput.equals(expected)) {
                     result.setStatus("PASSED");
                 } else {
                     result.setStatus("FAILED");

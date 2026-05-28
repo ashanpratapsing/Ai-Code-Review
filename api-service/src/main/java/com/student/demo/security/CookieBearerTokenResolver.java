@@ -12,6 +12,7 @@ public class CookieBearerTokenResolver implements BearerTokenResolver {
 
     @Override
     public String resolve(HttpServletRequest request) {
+        logger.info("Resolving token for request to URI: {} with query: {}", request.getRequestURI(), request.getQueryString());
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
                 if ("access_token".equals(cookie.getName())) {

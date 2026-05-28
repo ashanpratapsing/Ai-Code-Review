@@ -516,6 +516,14 @@ public class CodeAnalyzerService {
             scalability = "Thread pool reusage prevents memory exhaustion and improves application throughput under concurrent workloads.";
             faangInsights = "Managing thread lifecycles via ExecutorService prevents resource starvation. Ensure synchronization risks are mitigated with volatile or atomic variables.";
             designPattern = "Producer-Consumer / Thread Pool";
+        } else if (meta.hasScannerInput) {
+            summary = "The code handles standard input stream reading using Java Scanner.";
+            explanation = "Utilizes java.util.Scanner to read values from System.in. Ideal for simple interactive CLI applications.";
+            betterApproach = "For performance-critical I/O, use BufferedReader instead of Scanner.";
+            suggestions.add("Always close the Scanner resource after usage to prevent resource leaks.");
+            suggestions.add("Ensure input validation is performed to avoid NoSuchElementException or InputMismatchException.");
+            faangInsights = "Scanner is convenient but has synchronization overhead. For high-throughput scenarios, prefer custom fast I/O readers.";
+            designPattern = "Resource Wrapper (Scanner)";
         }
 
         if (meta.isSecuritySensitive) {
