@@ -31,3 +31,16 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Environment Variables
+.env
+.env.*
+!.env.example
+
+# Logs and debug
+*.log
+logs/
+*.log.*
+
+# OS generated files
+.DS_Store
