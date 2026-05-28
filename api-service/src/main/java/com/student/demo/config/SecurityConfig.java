@@ -43,7 +43,13 @@ public class SecurityConfig {
             .oauth2Login(oauth2 -> oauth2.successHandler(successHandler))
             .oauth2ResourceServer(oauth2 -> oauth2
                 .bearerTokenResolver(bearerTokenResolver)
-                .jwt(Customizer.withDefaults()));
+                .jwt(Customizer.withDefaults()))
+            .headers(headers -> headers
+                .xssProtection(xss -> xss.disable()) // Replaced by CSP in modern browsers
+                .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'; script-src 'self' 'unsafe-inline'; object-src 'none'; frame-ancestors 'none';"))
+                .frameOptions(frame -> frame.deny())
+                .httpStrictTransportSecurity(hsts -> hsts.includeSubDomains(true).maxAgeInSeconds(31536000))
+            );
 
         return http.build();
     }

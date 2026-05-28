@@ -57,17 +57,40 @@ public class GroqProvider implements AiProvider {
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
-        try {
-            logger.info("Sending request to Groq: {}", apiUrl);
-            ResponseEntity<String> response = restTemplate.postForEntity(apiUrl, entity, String.class);
-            logger.info("Groq Response Status: {}", response.getStatusCode());
-            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                return response.getBody();
+        int maxRetries = 3;
+        int delayMs = 1000;
+        Exception lastException = null;
+
+        for (int attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                logger.info("Sending request to Groq: {} (Attempt {}/{})", apiUrl, attempt, maxRetries);
+                ResponseEntity<String> response = restTemplate.postForEntity(apiUrl, entity, String.class);
+                logger.info("Groq Response Status: {}", response.getStatusCode());
+                
+                if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+                    return response.getBody();
+                }
+                
+                if (response.getStatusCode() == HttpStatus.TOO_MANY_REQUESTS) {
+                    logger.warn("Rate limited by Groq API. Retrying...");
+                } else {
+                    throw new RuntimeException("Unexpected status from Groq: " + response.getStatusCode() + " Body: " + response.getBody());
+                }
+            } catch (Exception e) {
+                lastException = e;
+                logger.error("Groq API Call Failed on attempt {}: {}", attempt, e.getMessage());
+                if (attempt < maxRetries) {
+                    try {
+                        Thread.sleep(delayMs);
+                        delayMs *= 2; // Exponential backoff
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        throw new RuntimeException("Interrupted during backoff", ie);
+                    }
+                }
             }
-            throw new RuntimeException("Unexpected status from Groq: " + response.getStatusCode() + " Body: " + response.getBody());
-        } catch (Exception e) {
-            logger.error("Groq API Call Failed: {}", e.getMessage());
-            throw e;
         }
+        
+        throw new RuntimeException("Failed to analyze code with Groq after " + maxRetries + " attempts", lastException);
     }
 }
