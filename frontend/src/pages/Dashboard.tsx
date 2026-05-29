@@ -95,8 +95,8 @@ export const Dashboard = () => {
       </motion.div>
 
       <motion.div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <Card className="p-0 overflow-hidden border-white/5">
-          <div className="p-6 border-b border-white/5 flex items-center justify-between">
+        <Card className="p-0 overflow-hidden border-border-subtle">
+          <div className="p-6 border-b border-border-subtle flex items-center justify-between">
             <h4 className="font-semibold flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-primary" />
               Your Activity (7 days)
@@ -107,26 +107,26 @@ export const Dashboard = () => {
               <AreaChart data={summary?.activityData ?? []}>
                 <defs>
                   <linearGradient id="colorIssues" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                    <stop offset="5%" stopColor="var(--chart-stroke-1)" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="var(--chart-stroke-1)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#27272a" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#71717a', fontSize: 12 }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#71717a', fontSize: 12 }} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--chart-grid)" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--chart-text)', fontSize: 12 }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--chart-text)', fontSize: 12 }} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#09090b', borderColor: '#27272a', borderRadius: '8px' }}
-                  itemStyle={{ color: '#fafafa' }}
+                  contentStyle={{ backgroundColor: 'var(--chart-tooltip-bg)', borderColor: 'var(--chart-tooltip-border)', borderRadius: '8px' }}
+                  itemStyle={{ color: 'var(--chart-tooltip-text)' }}
                 />
-                <Area type="monotone" dataKey="issues" stroke="#3b82f6" fillOpacity={1} fill="url(#colorIssues)" />
-                <Area type="monotone" dataKey="files" stroke="#8b5cf6" fill="transparent" strokeDasharray="5 5" />
+                <Area type="monotone" dataKey="issues" stroke="var(--chart-stroke-1)" fillOpacity={1} fill="url(#colorIssues)" />
+                <Area type="monotone" dataKey="files" stroke="var(--chart-stroke-2)" fill="transparent" strokeDasharray="5 5" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </Card>
 
-        <Card className="p-0 overflow-hidden border-white/5">
-          <div className="p-6 border-b border-white/5 flex items-center justify-between">
+        <Card className="p-0 overflow-hidden border-border-subtle">
+          <div className="p-6 border-b border-border-subtle flex items-center justify-between">
             <h4 className="font-semibold flex items-center gap-2">
               <Clock className="w-4 h-4 text-purple-500" />
               Analysis & Execution Mix
@@ -135,14 +135,14 @@ export const Dashboard = () => {
           <div className="h-[300px] w-full p-6">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={summary?.issueDistribution ?? []}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#27272a" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#71717a', fontSize: 12 }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#71717a', fontSize: 12 }} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--chart-grid)" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--chart-text)', fontSize: 12 }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--chart-text)', fontSize: 12 }} />
                 <Tooltip
-                  cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                  contentStyle={{ backgroundColor: '#09090b', borderColor: '#27272a', borderRadius: '8px' }}
+                  cursor={{ fill: 'var(--chart-cursor-fill)' }}
+                  contentStyle={{ backgroundColor: 'var(--chart-tooltip-bg)', borderColor: 'var(--chart-tooltip-border)', borderRadius: '8px' }}
                 />
-                <Bar dataKey="count" fill="#8b5cf6" radius={[4, 4, 0, 0]} barSize={40} />
+                <Bar dataKey="count" fill="var(--chart-stroke-2)" radius={[4, 4, 0, 0]} barSize={40} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -150,11 +150,11 @@ export const Dashboard = () => {
       </motion.div>
 
       {(summary?.recentActivity?.length ?? 0) > 0 && (
-        <Card className="p-6 border-white/5">
+        <Card className="p-6 border-border-subtle">
           <h4 className="font-semibold mb-4">Recent Activity</h4>
           <ul className="space-y-2 text-sm text-muted-foreground">
             {summary?.recentActivity?.map((item, idx) => (
-              <li key={idx} className="flex justify-between border-b border-white/5 pb-2">
+              <li key={idx} className="flex justify-between border-b border-border-subtle pb-2">
                 <span>{item.title}</span>
                 <span>{new Date(item.at).toLocaleString()}</span>
               </li>

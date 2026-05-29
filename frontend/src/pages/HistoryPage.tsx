@@ -72,14 +72,14 @@ export const HistoryPage: React.FC = () => {
           <input 
             type="text" 
             placeholder="Search history..." 
-            className="pl-10 pr-4 py-2 rounded-full bg-secondary/20 border border-white/10 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all w-64"
+            className="pl-10 pr-4 py-2 rounded-full bg-card-bg-subtle border border-border-subtle text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all w-64 text-foreground"
           />
         </div>
       </div>
 
       <div className="grid gap-4">
         {history?.length === 0 ? (
-          <div className="text-center py-20 bg-secondary/5 rounded-3xl border-2 border-dashed border-white/5">
+          <div className="text-center py-20 bg-card-bg-subtle/50 rounded-3xl border-2 border-dashed border-border-subtle">
             <HistoryIcon className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-20" />
             <p className="text-muted-foreground">No analysis history found. Start your first review!</p>
           </div>
@@ -87,7 +87,7 @@ export const HistoryPage: React.FC = () => {
           history?.map((item) => (
             <Card 
               key={item.id} 
-              className="group hover:bg-secondary/20 transition-all cursor-pointer border-white/5"
+              className="group hover:bg-hover-subtle transition-all cursor-pointer border-border-subtle"
               onClick={() => setSelectedItem(item)}
             >
               <div className="p-5 flex items-center justify-between">
@@ -133,9 +133,9 @@ export const HistoryPage: React.FC = () => {
       >
         {selectedItem && (
           <div className="space-y-8">
-             <div className="p-4 bg-black/50 rounded-xl border border-white/5">
+             <div className="p-4 bg-card-bg-subtle rounded-xl border border-border-subtle">
                 <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Code Snippet</h4>
-                <pre className="text-xs p-4 bg-[#0d0d0f] rounded-lg overflow-x-auto text-blue-300/80">
+                <pre className="text-xs p-4 bg-code-bg rounded-lg overflow-x-auto text-code-text">
                   <code>{selectedItem.codeSnippet}</code>
                 </pre>
              </div>

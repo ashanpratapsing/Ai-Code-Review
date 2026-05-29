@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, FolderKanban, Terminal, LogOut, ChevronRight, Activity, History as HistoryIcon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { cn, Button } from '../components/ui/core';
+import { ThemeToggle } from '../components/ThemeToggle';
 
 const SidebarItem = ({ to, icon: Icon, label }: { to: string; icon: any; label: string }) => (
   <NavLink
@@ -48,7 +49,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
         </nav>
 
         <div className="p-4 mt-auto">
-          <div className="glass p-4 rounded-xl mb-4 border border-white/5">
+          <div className="glass p-4 rounded-xl mb-4">
             <div className="flex items-center gap-3 mb-2">
               <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-purple-500" />
               <div className="overflow-hidden">
@@ -73,6 +74,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
              <span className="text-foreground font-medium capitalize">{window.location.pathname.split('/')[1] || 'Home'}</span>
           </div>
           <div className="flex items-center gap-4">
+             <ThemeToggle />
              <Button variant="outline" size="sm">
                 <Activity className="w-4 h-4 mr-2" />
                 Documentation

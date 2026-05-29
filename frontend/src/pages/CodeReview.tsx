@@ -33,8 +33,8 @@ export const CodeReview = () => {
 
   return (
     <motion.div className="h-[calc(100vh-10rem)] flex gap-6 p-2" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-      <Card className="w-72 p-0 flex flex-col border-white/5 bg-black/40 backdrop-blur-3xl overflow-hidden shadow-2xl">
-        <div className="p-5 border-b border-white/5">
+      <Card className="w-72 p-0 flex flex-col border-border-subtle bg-[var(--drawer-bg)] backdrop-blur-3xl overflow-hidden shadow-2xl">
+        <div className="p-5 border-b border-border-subtle">
           <h5 className="font-bold text-xs uppercase tracking-widest text-muted-foreground flex items-center gap-2">
             <Code2 className="w-4 h-4 text-primary" />
             Project Files
@@ -50,7 +50,7 @@ export const CodeReview = () => {
               className={`w-full text-left px-4 py-3 rounded-xl text-sm transition-all flex items-center gap-3 border ${
                 selectedFile?.id === file.id
                   ? 'bg-primary/10 border-primary/30 text-primary'
-                  : 'border-transparent hover:bg-white/5 text-muted-foreground'
+                  : 'border-transparent hover:bg-[var(--hover-subtle)] text-muted-foreground'
               }`}
             >
               <FileText className="w-4 h-4 opacity-60" />

@@ -1,25 +1,179 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #09090b;
-  --color-foreground: #fafafa;
-  --color-card: rgba(24, 24, 27, 0.8);
-  --color-card-foreground: #fafafa;
-  --color-popover: #09090b;
-  --color-popover-foreground: #fafafa;
-  --color-primary: #3b82f6;
-  --color-primary-foreground: #ffffff;
-  --color-secondary: #27272a;
-  --color-secondary-foreground: #fafafa;
-  --color-muted: #27272a;
-  --color-muted-foreground: #a1a1aa;
-  --color-accent: #3f3f46;
-  --color-accent-foreground: #fafafa;
-  --color-destructive: #ef4444;
-  --color-destructive-foreground: #fafafa;
-  --color-border: #27272a;
-  --color-input: #27272a;
-  --color-ring: #3b82f6;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Custom variables mapped to tailwind v4 */
+  --color-border-subtle: var(--border-subtle);
+  --color-card-bg-subtle: var(--card-bg-subtle);
+  --color-hover-subtle: var(--hover-subtle);
+  --color-progress-bg: var(--progress-bg);
+  --color-code-bg: var(--code-bg);
+  --color-code-text: var(--code-text);
+  
+  --color-chart-grid: var(--chart-grid);
+  --color-chart-text: var(--chart-text);
+  --color-chart-tooltip-bg: var(--chart-tooltip-bg);
+  --color-chart-tooltip-border: var(--chart-tooltip-border);
+  --color-chart-tooltip-text: var(--chart-tooltip-text);
+  
+  --color-login-glow-1: var(--login-glow-1);
+  --color-login-glow-2: var(--login-glow-2);
+  --color-login-glow-3: var(--login-glow-3);
+  --color-login-card-border: var(--login-card-border);
+  --color-timeline-line: var(--timeline-line);
+
+  --font-sans: 'Inter', 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+:root {
+  /* Existing Dark Mode values as default, so dark mode remains pixel-identical */
+  --background: #09090b;
+  --foreground: #fafafa;
+  --card: rgba(24, 24, 27, 0.8);
+  --card-foreground: #fafafa;
+  --popover: #09090b;
+  --popover-foreground: #fafafa;
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
+  --secondary: #27272a;
+  --secondary-foreground: #fafafa;
+  --muted: #27272a;
+  --muted-foreground: #a1a1aa;
+  --accent: #3f3f46;
+  --accent-foreground: #fafafa;
+  --destructive: #ef4444;
+  --destructive-foreground: #fafafa;
+  --border: #27272a;
+  --input: #27272a;
+  --ring: #3b82f6;
+
+  /* Custom variables mappings */
+  --border-subtle: rgba(255, 255, 255, 0.05);
+  --card-bg-subtle: rgba(39, 39, 42, 0.2);
+  --hover-subtle: rgba(255, 255, 255, 0.05);
+  --progress-bg: rgba(255, 255, 255, 0.05);
+  --code-bg: #0d0d0f;
+  --code-text: rgba(147, 197, 253, 0.8);
+  --modal-bg: #0d0d0f;
+  --modal-border: rgba(255, 255, 255, 0.1);
+  --modal-header-bg: rgba(13, 13, 15, 0.8);
+
+  /* Charts */
+  --chart-grid: #27272a;
+  --chart-text: #71717a;
+  --chart-tooltip-bg: #09090b;
+  --chart-tooltip-border: #27272a;
+  --chart-tooltip-text: #fafafa;
+  --chart-stroke-1: #3b82f6;
+  --chart-stroke-2: #8b5cf6;
+  --chart-cursor-fill: rgba(255, 255, 255, 0.05);
+
+  /* Login UI */
+  --login-glow-1: rgba(59, 130, 246, 0.2);
+  --login-glow-2: rgba(168, 85, 247, 0.1);
+  --login-glow-3: rgba(59, 130, 246, 0.1);
+  --login-card-border: rgba(255, 255, 255, 0.05);
+  --login-bg: #09090b;
+  --login-card-bg: rgba(24, 24, 27, 0.4);
+  --editor-card-bg: #0e0e11;
+  --drawer-bg: rgba(13, 13, 17, 0.8);
+  --drawer-header-bg: rgba(255, 255, 255, 0.05);
+  --drawer-sidebar-bg: rgba(0, 0, 0, 0.1);
+  --drawer-fields-bg: rgba(0, 0, 0, 0.05);
+  --drawer-input-bg: #070709;
+
+  /* Timeline line */
+  --timeline-line: #27272a;
+
+  /* Glass base */
+  --glass-bg-base: rgba(24, 24, 27, 0.4);
+  --glass-border-base: rgba(255, 255, 255, 0.1);
+  --glass-hover-bg-base: rgba(255, 255, 255, 0.1);
+}
+
+/* Premium Light theme overrides */
+[data-theme="light"] {
+  --background: #f8f9fa;
+  --foreground: #1a1a1a;
+  --card: #ffffff;
+  --card-foreground: #1a1a1a;
+  --popover: #ffffff;
+  --popover-foreground: #1a1a1a;
+  --primary: #c5a059;
+  --primary-foreground: #ffffff;
+  --secondary: #f3efe6;
+  --secondary-foreground: #2b2b2b;
+  --muted: #eaeaea;
+  --muted-foreground: #6c757d;
+  --accent: #faf6ee;
+  --accent-foreground: #1a1a1a;
+  --destructive: #c62828;
+  --destructive-foreground: #ffffff;
+  --border: #eaeaea;
+  --input: #e5d3b3;
+  --ring: #c5a059;
+
+  /* Custom variables mappings */
+  --border-subtle: #eedcbe;
+  --card-bg-subtle: #faf6ee;
+  --hover-subtle: #faf6ee;
+  --progress-bg: rgba(0, 0, 0, 0.05);
+  --code-bg: #faf7f2;
+  --code-text: #333333;
+  --modal-bg: #ffffff;
+  --modal-border: #eaeaea;
+  --modal-header-bg: rgba(255, 255, 255, 0.8);
+
+  /* Charts */
+  --chart-grid: #eaeaea;
+  --chart-text: #6c757d;
+  --chart-tooltip-bg: #ffffff;
+  --chart-tooltip-border: #eaeaea;
+  --chart-tooltip-text: #1a1a1a;
+  --chart-stroke-1: #c5a059;
+  --chart-stroke-2: #e5d3b3;
+  --chart-cursor-fill: rgba(0, 0, 0, 0.03);
+
+  /* Login UI */
+  --login-glow-1: rgba(212, 175, 55, 0.15);
+  --login-glow-2: rgba(197, 160, 89, 0.05);
+  --login-glow-3: rgba(212, 175, 55, 0.05);
+  --login-card-border: #e5d3b3;
+  --login-bg: #fafafa;
+  --login-card-bg: rgba(255, 255, 255, 0.85);
+  --editor-card-bg: #faf7f2;
+  --drawer-bg: rgba(243, 239, 230, 0.9);
+  --drawer-header-bg: rgba(0, 0, 0, 0.03);
+  --drawer-sidebar-bg: rgba(0, 0, 0, 0.03);
+  --drawer-fields-bg: rgba(0, 0, 0, 0.03);
+  --drawer-input-bg: #faf7f2;
+
+  /* Timeline line */
+  --timeline-line: #eedcbe;
+
+  /* Glass base overrides */
+  --glass-bg-base: rgba(255, 255, 255, 0.8);
+  --glass-border-base: #eaeaea;
+  --glass-hover-bg-base: rgba(197, 160, 89, 0.05);
 }
 
 @layer base {
@@ -29,16 +183,23 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
   }
 }
 
 @layer components {
   .glass {
-    @apply bg-card/50 backdrop-blur-xl border border-white/10 shadow-xl;
+    background-color: var(--glass-bg-base);
+    backdrop-filter: blur(24px);
+    border: 1px solid var(--glass-border-base);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
   }
 
   .glass-hover {
-    @apply hover:bg-white/10 transition-all duration-300;
+    transition: all 0.3s ease;
+  }
+  .glass-hover:hover {
+    background-color: var(--glass-hover-bg-base);
   }
 
   .nav-item {
@@ -48,6 +209,11 @@
   .nav-item.active {
     @apply text-foreground bg-secondary;
   }
+}
+
+/* Global Transitions for Premium Feel */
+header, aside, main, card, button, input, select, textarea, pre {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
 }
 
 /* Custom Scrollbar */

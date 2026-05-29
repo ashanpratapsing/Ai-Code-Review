@@ -39,11 +39,11 @@ export const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden p-4">
-      <div className="absolute top-0 left-0 w-full h-full">
-         <div className="absolute -top-24 -left-24 w-96 h-96 bg-primary/20 rounded-full blur-[120px]" />
-         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-[120px]" />
-         <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-blue-500/10 rounded-full blur-[120px]" />
+    <div className="min-h-screen flex items-center justify-center bg-[var(--login-bg)] relative overflow-hidden p-4">
+      <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+         <div className="absolute -top-24 -left-24 w-96 h-96 bg-[var(--login-glow-1)] rounded-full blur-[120px]" />
+         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[var(--login-glow-2)] rounded-full blur-[120px]" />
+         <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-[var(--login-glow-3)] rounded-full blur-[120px]" />
       </div>
 
       <motion.div
@@ -51,9 +51,9 @@ export const Login = () => {
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md relative z-10"
       >
-        <Card className="p-8 border-white/5 bg-card/40 backdrop-blur-2xl">
+        <Card className="p-8 border-[var(--login-card-border)] bg-[var(--login-card-bg)] backdrop-blur-2xl">
           <div className="flex flex-col items-center mb-8">
-            <div className="w-16 h-16 bg-primary/20 rounded-2xl flex items-center justify-center border border-primary/30 mb-4">
+            <div className="w-16 h-16 bg-[var(--login-glow-1)] rounded-2xl flex items-center justify-center border border-[var(--login-card-border)] mb-4">
               <Terminal className="text-primary w-8 h-8" />
             </div>
             <h2 className="text-3xl font-bold tracking-tight">{isLogin ? 'Welcome Back' : 'Create Account'}</h2>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Editor from '@monaco-editor/react';
+import Editor, { useMonaco } from '@monaco-editor/react';
 import { Button, Card, Badge } from '../ui/core';
 import { 
   Play, 
@@ -14,6 +14,7 @@ import {
   Loader2 
 } from 'lucide-react';
 import { codeExecutionService } from '../../services/api';
+import { useTheme } from '../../context/ThemeContext';
 
 import type { AnalysisContext, ExecutionResponse } from '../../types';
 
@@ -90,6 +91,31 @@ const detectsInput = (codeText: string, lang: string): boolean => {
 };
 
 export const CodeInput: React.FC<CodeInputProps> = ({ onAnalyze, isLoading, initialCode, codeFileId }) => {
+  const { theme: appTheme } = useTheme();
+  const monaco = useMonaco();
+
+  useEffect(() => {
+    if (monaco) {
+      monaco.editor.defineTheme('ai-review-light', {
+        base: 'vs',
+        inherit: true,
+        rules: [
+          { token: 'keyword', foreground: 'B58900', fontStyle: 'bold' },
+          { token: 'string', foreground: '2AA198' },
+          { token: 'variable', foreground: '268BD2' },
+          { token: 'comment', foreground: '93A1A1', fontStyle: 'italic' },
+        ],
+        colors: {
+          'editor.background': '#FAF7F2',
+          'editor.foreground': '#333333',
+          'editorLineNumber.foreground': '#93A1A1',
+          'editor.lineHighlightBackground': '#FAF6EE',
+          'editorCursor.foreground': '#333333',
+        }
+      });
+    }
+  }, [monaco]);
+
   const [code, setCode] = useState(() => initialCode || localStorage.getItem('last_code') || JAVA_DEFAULT);
   const [language, setLanguage] = useState('java');
   const [aiModel, setAiModel] = useState('AUTO');
@@ -211,21 +237,21 @@ export const CodeInput: React.FC<CodeInputProps> = ({ onAnalyze, isLoading, init
     <div className="flex flex-col h-full space-y-4 animate-in fade-in duration-500">
       
       {/* 1. Header Toolbar */}
-      <div className="flex items-center justify-between bg-secondary/20 p-3 rounded-xl border border-white/5">
+      <div className="flex items-center justify-between bg-card-bg-subtle p-3 rounded-xl border border-border-subtle">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <Code2 className="w-4 h-4 text-primary" />
             <select 
               value={language}
               onChange={(e) => setLanguage(e.target.value)}
-              className="bg-transparent text-xs font-bold uppercase tracking-wider focus:outline-none cursor-pointer hover:text-primary transition-colors"
+              className="bg-transparent text-xs font-bold uppercase tracking-wider focus:outline-none cursor-pointer hover:text-primary transition-colors text-foreground"
             >
               {languages.map(lang => (
-                <option key={lang.value} value={lang.value} className="bg-[#1e1e1e]">{lang.label}</option>
+                <option key={lang.value} value={lang.value} className="bg-popover text-foreground">{lang.label}</option>
               ))}
             </select>
           </div>
-          <div className="h-4 w-px bg-white/10" />
+          <div className="h-4 w-px bg-border" />
           <div className="flex items-center gap-2">
             <select 
               value={aiModel}
@@ -233,11 +259,11 @@ export const CodeInput: React.FC<CodeInputProps> = ({ onAnalyze, isLoading, init
               className="bg-transparent text-xs font-bold uppercase tracking-wider focus:outline-none cursor-pointer text-purple-400 hover:text-purple-300 transition-colors"
             >
               {models.map(model => (
-                <option key={model.value} value={model.value} className="bg-[#1e1e1e]">{model.label}</option>
+                <option key={model.value} value={model.value} className="bg-popover text-foreground">{model.label}</option>
               ))}
             </select>
           </div>
-          <div className="h-4 w-px bg-white/10" />
+          <div className="h-4 w-px bg-border" />
           <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium">
             {code.split('\n').length} Lines
           </div>
@@ -253,7 +279,7 @@ export const CodeInput: React.FC<CodeInputProps> = ({ onAnalyze, isLoading, init
             <Trash2 className="w-3 h-3" />
             Clear
           </Button>
-
+ 
           {/* Interactive Sandbox Run Button */}
           <Button 
             variant="outline" 
@@ -265,7 +291,7 @@ export const CodeInput: React.FC<CodeInputProps> = ({ onAnalyze, isLoading, init
             {running ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3 text-primary fill-primary/20" />}
             Run Code
           </Button>
-
+ 
           {/* Primary AI Review Button */}
           <Button 
             variant="primary" 
@@ -287,13 +313,13 @@ export const CodeInput: React.FC<CodeInputProps> = ({ onAnalyze, isLoading, init
           </Button>
         </div>
       </div>
-
+ 
       {/* 2. Monaco Editor Container */}
-      <Card className="flex-1 p-0 overflow-hidden border-white/5 bg-[#0e0e11] shadow-2xl relative min-h-[300px]">
+      <Card className="flex-1 p-0 overflow-hidden border-border-subtle bg-[var(--editor-card-bg)] shadow-2xl relative min-h-[300px]">
         <Editor
           height="100%"
           language={language}
-          theme="vs-dark"
+          theme={appTheme === 'dark' ? 'vs-dark' : 'ai-review-light'}
           value={code}
           onChange={(val) => setCode(val || '')}
           options={{
@@ -317,12 +343,12 @@ export const CodeInput: React.FC<CodeInputProps> = ({ onAnalyze, isLoading, init
           </div>
         )}
       </Card>
-
+ 
       {/* 3. Competitive-Coding Execution Drawer */}
-      <div className="h-[280px] border border-white/5 bg-[#0d0d11]/80 backdrop-blur-md rounded-2xl overflow-hidden flex flex-col shadow-2xl">
+      <div className="h-[280px] border border-border-subtle bg-[var(--drawer-bg)] backdrop-blur-md rounded-2xl overflow-hidden flex flex-col shadow-2xl">
         
         {/* Terminal Drawer Header */}
-        <div className="h-12 border-b border-white/5 bg-white/5 px-4 flex items-center justify-between">
+        <div className="h-12 border-b border-border-subtle bg-[var(--drawer-header-bg)] px-4 flex items-center justify-between">
           <div className="flex gap-4">
             <button 
               onClick={() => setActiveConsoleTab('testcases')}
@@ -345,7 +371,7 @@ export const CodeInput: React.FC<CodeInputProps> = ({ onAnalyze, isLoading, init
             <Button 
               variant="ghost" 
               size="sm" 
-              className="h-7 text-[9px] gap-1 px-3 border border-white/5 hover:bg-white/5 text-primary"
+              className="h-7 text-[9px] gap-1 px-3 border border-border-subtle hover:bg-[var(--hover-subtle)] text-primary"
               onClick={handleAddTestCase}
             >
               <Plus className="w-3 h-3" />
@@ -361,12 +387,12 @@ export const CodeInput: React.FC<CodeInputProps> = ({ onAnalyze, isLoading, init
           {activeConsoleTab === 'testcases' && (
             <div className="flex-1 flex overflow-hidden">
               {/* Cases Sidebar */}
-              <div className="w-40 border-r border-white/5 p-2 overflow-y-auto space-y-1 bg-black/10">
+              <div className="w-40 border-r border-border-subtle p-2 overflow-y-auto space-y-1 bg-[var(--drawer-sidebar-bg)]">
                 {testCases.map((tc, index) => (
                   <div 
                     key={tc.id}
                     onClick={() => setSelectedTestCaseId(tc.id)}
-                    className={`group px-3 py-2 rounded-lg text-xs font-semibold flex items-center justify-between cursor-pointer transition-all ${selectedTestCaseId === tc.id ? 'bg-primary/10 text-primary border border-primary/20' : 'text-muted-foreground hover:text-foreground hover:bg-white/5'}`}
+                    className={`group px-3 py-2 rounded-lg text-xs font-semibold flex items-center justify-between cursor-pointer transition-all ${selectedTestCaseId === tc.id ? 'bg-primary/10 text-primary border border-primary/20' : 'text-muted-foreground hover:text-foreground hover:bg-[var(--hover-subtle)]'}`}
                   >
                     <span>Case {index + 1}</span>
                     <button 
@@ -388,7 +414,7 @@ export const CodeInput: React.FC<CodeInputProps> = ({ onAnalyze, isLoading, init
               </div>
 
               {/* Case Editor Fields */}
-              <div className="flex-1 p-4 overflow-y-auto bg-black/5">
+              <div className="flex-1 p-4 overflow-y-auto bg-[var(--drawer-fields-bg)]">
                 {activeTestCase ? (
                   <div className="grid grid-cols-2 gap-4 h-full">
                     {!detectsInput(code, language) && (
@@ -403,7 +429,7 @@ export const CodeInput: React.FC<CodeInputProps> = ({ onAnalyze, isLoading, init
                         value={activeTestCase.input}
                         onChange={(e) => updateTestCase(activeTestCase.id, 'input', e.target.value)}
                         placeholder="Provide standard inputs here..."
-                        className="flex-1 w-full bg-[#070709] border border-white/5 rounded-xl p-3 text-xs font-mono focus:outline-none focus:border-primary/55 resize-none text-foreground"
+                        className="flex-1 w-full bg-[var(--drawer-input-bg)] border border-border-subtle rounded-xl p-3 text-xs font-mono focus:outline-none focus:border-primary/55 resize-none text-foreground"
                       />
                     </div>
                     <div className="flex flex-col space-y-2">
@@ -412,7 +438,7 @@ export const CodeInput: React.FC<CodeInputProps> = ({ onAnalyze, isLoading, init
                         value={activeTestCase.expectedOutput}
                         onChange={(e) => updateTestCase(activeTestCase.id, 'expectedOutput', e.target.value)}
                         placeholder="Provide expected matching stdout (leave empty to skip validation)..."
-                        className="flex-1 w-full bg-[#070709] border border-white/5 rounded-xl p-3 text-xs font-mono focus:outline-none focus:border-primary/55 resize-none text-foreground"
+                        className="flex-1 w-full bg-[var(--drawer-input-bg)] border border-border-subtle rounded-xl p-3 text-xs font-mono focus:outline-none focus:border-primary/55 resize-none text-foreground"
                       />
                     </div>
                   </div>
@@ -428,7 +454,7 @@ export const CodeInput: React.FC<CodeInputProps> = ({ onAnalyze, isLoading, init
 
           {/* Tab 2: Console stdout/stderr Output */}
           {activeConsoleTab === 'console' && (
-            <div className="flex-1 p-4 overflow-y-auto bg-[#070709] font-mono text-xs flex flex-col">
+            <div className="flex-1 p-4 overflow-y-auto bg-[var(--drawer-input-bg)] font-mono text-xs flex flex-col">
               {running && (
                 <div className="flex-1 flex flex-col items-center justify-center space-y-3 text-muted-foreground">
                   <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -440,8 +466,8 @@ export const CodeInput: React.FC<CodeInputProps> = ({ onAnalyze, isLoading, init
                 <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl flex items-start gap-3">
                   <AlertTriangle className="w-5 h-5 shrink-0" />
                   <div className="space-y-1">
-                    <h5 className="font-bold">Sandbox Execution Error</h5>
-                    <p className="text-xs">{runError}</p>
+                     <h5 className="font-bold">Sandbox Execution Error</h5>
+                     <p className="text-xs">{runError}</p>
                   </div>
                 </div>
               )}
@@ -471,8 +497,8 @@ export const CodeInput: React.FC<CodeInputProps> = ({ onAnalyze, isLoading, init
                         const isRuntimeError = res.status === 'RUNTIME_ERROR';
 
                         return (
-                          <div key={res.id} className="border border-white/5 rounded-xl bg-[#0f0f13] overflow-hidden">
-                            <div className="px-4 py-2 bg-white/5 border-b border-white/5 flex items-center justify-between">
+                          <div key={res.id} className="border border-border-subtle rounded-xl bg-card overflow-hidden">
+                            <div className="px-4 py-2 bg-[var(--drawer-header-bg)] border-b border-border-subtle flex items-center justify-between">
                               <span className="font-bold text-muted-foreground text-[10px] uppercase">Test Case {idx + 1}</span>
                               <div className="flex items-center gap-3">
                                 <span className="text-[10px] text-muted-foreground font-semibold">Duration: {res.executionTimeMs} ms</span>
@@ -486,15 +512,15 @@ export const CodeInput: React.FC<CodeInputProps> = ({ onAnalyze, isLoading, init
                             <div className="p-4 grid grid-cols-3 gap-4 text-[11px]">
                               <div>
                                 <span className="text-muted-foreground text-[9px] uppercase tracking-wider block mb-1">Standard Input</span>
-                                <pre className="bg-black/40 p-2 rounded border border-white/5 font-mono min-h-8 max-h-20 overflow-y-auto">{testCases[idx]?.input || '(empty)'}</pre>
+                                <pre className="bg-card-bg-subtle p-2 rounded border border-border-subtle font-mono min-h-8 max-h-20 overflow-y-auto">{testCases[idx]?.input || '(empty)'}</pre>
                               </div>
                               <div>
                                 <span className="text-muted-foreground text-[9px] uppercase tracking-wider block mb-1">Expected Output</span>
-                                <pre className="bg-black/40 p-2 rounded border border-white/5 font-mono min-h-8 max-h-20 overflow-y-auto text-green-400">{res.expectedOutput || '(empty)'}</pre>
+                                <pre className="bg-card-bg-subtle p-2 rounded border border-border-subtle font-mono min-h-8 max-h-20 overflow-y-auto text-green-500">{res.expectedOutput || '(empty)'}</pre>
                               </div>
                               <div>
                                 <span className="text-muted-foreground text-[9px] uppercase tracking-wider block mb-1">Actual Output</span>
-                                <pre className={`bg-black/40 p-2 rounded border border-white/5 font-mono min-h-8 max-h-20 overflow-y-auto ${isPassed ? 'text-green-400 font-bold' : isRuntimeError ? 'text-red-400' : 'text-red-400 font-bold'}`}>
+                                <pre className={`bg-card-bg-subtle p-2 rounded border border-border-subtle font-mono min-h-8 max-h-20 overflow-y-auto ${isPassed ? 'text-green-400 font-bold' : isRuntimeError ? 'text-red-400' : 'text-red-400 font-bold'}`}>
                                   {isTimeout ? 'Time Limit Exceeded' : res.actualOutput || (res.error ? res.error : '(empty)')}
                                 </pre>
                               </div>

@@ -79,7 +79,7 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ results, onRes
         <Card className="flex flex-col items-center justify-center p-6 text-center bg-blue-500/5">
           <span className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2">Readability</span>
           <div className="text-2xl font-black text-blue-400 mb-1">{readabilityScore}%</div>
-          <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
+          <div className="w-full bg-progress-bg h-1.5 rounded-full overflow-hidden">
             <div className="bg-blue-500 h-full" style={{ width: `${readabilityScore}%` }} />
           </div>
         </Card>
@@ -87,14 +87,14 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ results, onRes
         <Card className="flex flex-col items-center justify-center p-6 text-center bg-green-500/5">
           <span className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2">Maintainability</span>
           <div className="text-2xl font-black text-green-400 mb-1">{maintainabilityScore}%</div>
-          <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
+          <div className="w-full bg-progress-bg h-1.5 rounded-full overflow-hidden">
             <div className="bg-green-500 h-full" style={{ width: `${maintainabilityScore}%` }} />
           </div>
         </Card>
       </div>
 
       {/* 2. Top-Level Summary Card */}
-      <Card className="p-6 bg-secondary/10 border-white/5">
+      <Card className="p-6 bg-card-bg-subtle border-border-subtle">
         <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Analysis Summary</h4>
         <p className="text-sm leading-relaxed opacity-80">{summary.text}</p>
       </Card>
@@ -113,7 +113,7 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ results, onRes
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: idx * 0.1 }}
                 key={idx}
-                className="p-4 rounded-xl bg-secondary/20 border border-white/5 flex gap-3 items-start group hover:bg-secondary/30 transition-all"
+                className="p-4 rounded-xl bg-card-bg-subtle border border-border-subtle flex gap-3 items-start group hover:bg-hover-subtle transition-all"
               >
                 <div className="mt-1">
                   <AlertTriangle className="w-4 h-4 text-yellow-500" />
@@ -125,7 +125,7 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ results, onRes
               </motion.div>
             ))}
             {issues.length === 0 && (
-              <div className="p-8 text-center bg-secondary/10 rounded-xl border border-dashed border-white/10 opacity-30">
+              <div className="p-8 text-center bg-card-bg-subtle rounded-xl border border-dashed border-border-subtle opacity-30">
                 <CheckCircle2 className="w-8 h-8 mx-auto mb-2" />
                 <p className="text-xs">Perfect execution - no issues found</p>
               </div>
@@ -161,7 +161,7 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ results, onRes
                   "{faangInsights}"
                 </p>
                 {designPattern && (
-                  <div className="mt-4 pt-4 border-t border-white/5">
+                  <div className="mt-4 pt-4 border-t border-border-subtle">
                     <span className="text-[10px] uppercase text-muted-foreground block mb-1">Architecture Pattern</span>
                     <Badge variant="outline" className="border-primary/30 text-primary">{designPattern}</Badge>
                   </div>
@@ -270,7 +270,7 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ results, onRes
 
       {/* 4.6 Suggestions Card */}
       {suggestions && suggestions.length > 0 && (
-        <Card className="p-6 bg-secondary/10 border-white/5">
+        <Card className="p-6 bg-card-bg-subtle border-border-subtle">
           <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">Improvement Suggestions</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
             {suggestions.map((s: string, i: number) => (
@@ -285,8 +285,8 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ results, onRes
 
       {/* 5. Optimized Code Block */}
       {optimizedCode && optimizedCode !== 'N/A' && (
-        <Card className="p-0 overflow-hidden border-primary/20 bg-black/40">
-          <div className="px-5 py-3 border-b border-white/5 bg-primary/10 flex items-center justify-between">
+        <Card className="p-0 overflow-hidden border-primary/20 bg-card-bg-subtle">
+          <div className="px-5 py-3 border-b border-border-subtle bg-primary/10 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Code2 className="w-4 h-4 text-primary" />
               <span className="text-xs font-bold uppercase tracking-widest text-primary">Optimized Implementation</span>
@@ -295,7 +295,7 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ results, onRes
               Copy Code
             </Button>
           </div>
-          <pre className="p-6 text-xs font-mono overflow-x-auto text-blue-300/90 leading-relaxed bg-[#0d0d0f]">
+          <pre className="p-6 text-xs font-mono overflow-x-auto text-code-text leading-relaxed bg-code-bg">
             <code>{optimizedCode}</code>
           </pre>
         </Card>
