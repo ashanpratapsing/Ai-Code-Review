@@ -53,18 +53,24 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String accessToken = tokenService.generateAccessToken(user);
         String refreshToken = tokenService.generateRefreshToken(user);
 
-        Cookie accessCookie = new Cookie("access_token", accessToken);
-        accessCookie.setHttpOnly(true);
-        accessCookie.setPath("/");
-        accessCookie.setMaxAge(15 * 60); // 15 mins
+        org.springframework.http.ResponseCookie accessCookie = org.springframework.http.ResponseCookie.from("access_token", accessToken)
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(15 * 60)
+                .sameSite("Strict")
+                .build();
 
-        Cookie refreshCookie = new Cookie("refresh_token", refreshToken);
-        refreshCookie.setHttpOnly(true);
-        refreshCookie.setPath("/auth/refresh"); // Restrict to refresh endpoint
-        refreshCookie.setMaxAge(7 * 24 * 60 * 60); // 7 days
+        org.springframework.http.ResponseCookie refreshCookie = org.springframework.http.ResponseCookie.from("refresh_token", refreshToken)
+                .httpOnly(true)
+                .secure(true)
+                .path("/auth/refresh")
+                .maxAge(7 * 24 * 60 * 60)
+                .sameSite("Strict")
+                .build();
 
-        response.addCookie(accessCookie);
-        response.addCookie(refreshCookie);
+        response.addHeader(org.springframework.http.HttpHeaders.SET_COOKIE, accessCookie.toString());
+        response.addHeader(org.springframework.http.HttpHeaders.SET_COOKIE, refreshCookie.toString());
 
         getRedirectStrategy().sendRedirect(request, response, frontendUrl + "/dashboard");
     }

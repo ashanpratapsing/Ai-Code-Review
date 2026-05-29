@@ -1,0 +1,6 @@
+{
+  "name": "fibonacci.py",
+  "content": "def fibonacci(n):\n    if n <= 0:\n        return []\n    elif n == 1:\n        return [0]\n    fib = [0, 1]\n    while len(fib) < n:\n        fib.append(fib[-1] + fib[-2])\n    return fib\n",
+  "language": "python",
+  "project": { "id": 1 }
+}

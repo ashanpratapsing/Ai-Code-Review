@@ -60,12 +60,38 @@ public class OpenAiProvider implements AiProvider {
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
-        ResponseEntity<String> response = restTemplate.postForEntity(apiUrl, entity, String.class);
+        int maxRetries = 3;
+        int delayMs = 1000;
+        Exception lastException = null;
 
-        if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-            return response.getBody();
+        for (int attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                logger.info("Sending request to OpenAI: {} (Attempt {}/{})", apiUrl, attempt, maxRetries);
+                ResponseEntity<String> response = restTemplate.postForEntity(apiUrl, entity, String.class);
+                
+                if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+                    return response.getBody();
+                }
+                
+                if (response.getStatusCode() == HttpStatus.TOO_MANY_REQUESTS) {
+                    logger.warn("Rate limited by OpenAI API. Retrying...");
+                } else {
+                    throw new RuntimeException("Unexpected status from OpenAI: " + response.getStatusCode() + " Body: " + response.getBody());
+                }
+            } catch (Exception e) {
+                lastException = e;
+                logger.error("OpenAI API Call Failed on attempt {}: {}", attempt, e.getMessage());
+                if (attempt < maxRetries) {
+                    try {
+                        Thread.sleep(delayMs);
+                        delayMs *= 2;
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        throw new RuntimeException("Interrupted during backoff", ie);
+                    }
+                }
+            }
         }
-
-        throw new RuntimeException("Unexpected status from OpenAI: " + response.getStatusCode());
+        throw new RuntimeException("Failed to analyze code with OpenAI after " + maxRetries + " attempts", lastException);
     }
 }

@@ -25,6 +25,9 @@ public class GroqProvider implements AiProvider {
     @Value("${groq.api.url:}")
     private String apiUrl;
 
+    @Value("${groq.model:llama-3.3-70b-versatile}")
+    private String modelName;
+
     private final RestTemplate restTemplate = new RestTemplate();
 
     @Override
@@ -39,14 +42,14 @@ public class GroqProvider implements AiProvider {
 
     @Override
     public String analyze(String code, String systemPrompt) throws Exception {
-        logger.info("Calling Groq AI API (Model: llama3-8b-8192)");
+        logger.info("Calling Groq AI API (Model: {})", modelName);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(apiKey);
 
         Map<String, Object> body = new HashMap<>();
-        body.put("model", "llama3-8b-8192");
+        body.put("model", modelName);
 
         List<Map<String, String>> messages = new ArrayList<>();
         messages.add(Map.of("role", "system", "content", systemPrompt));

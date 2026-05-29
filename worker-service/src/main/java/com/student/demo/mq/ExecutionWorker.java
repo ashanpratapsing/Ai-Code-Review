@@ -42,15 +42,27 @@ public class ExecutionWorker {
 
     @RabbitListener(queues = RabbitMQConfig.EXECUTION_QUEUE_NAME)
     @Transactional
-    public ExecutionResponse receiveExecutionRequest(ExecutionRequest request) {
+    public ExecutionResponse receiveExecutionRequest(ExecutionRequest request, @org.springframework.messaging.handler.annotation.Header(name = "x-death", required = false) java.util.List<java.util.Map<String, Object>> xDeath) {
         logger.info("Received execution job for execution ID: {}, language: {}", request.getExecutionId(), request.getLanguage());
         
+        int retryCount = 0;
+        if (xDeath != null && !xDeath.isEmpty()) {
+            Long count = (Long) xDeath.get(0).get("count");
+            retryCount = count.intValue();
+        }
+
+        if (retryCount >= 3) {
+            logger.error("Max retries (3) reached via DLX for execution ID: {}. Dropping poison pill.", request.getExecutionId());
+            return null; // Drop permanently
+        }
+
         ExecutionResponse response = executeCode(request);
         
         try {
             persistExecutionResults(request, response);
         } catch (Exception e) {
             logger.error("Failed to persist execution results for job ID: {}", request.getExecutionId(), e);
+            throw new org.springframework.amqp.AmqpRejectAndDontRequeueException(e);
         }
 
         return response;

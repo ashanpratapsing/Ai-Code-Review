@@ -7,7 +7,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
       POSTGRES_DB: ${POSTGRES_DB:-ai_code_review}
     ports:
-      - "5432:5432"
+      - "0.0.0.0:5432:5432"
     volumes:
       - postgres_data_v2:/var/lib/postgresql/data
     healthcheck:
@@ -20,7 +20,7 @@ services:
     image: redis:7-alpine
     container_name: antigravity_cache
     ports:
-      - "6379:6379"
+      - "0.0.0.0:6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -31,8 +31,8 @@ services:
     image: rabbitmq:3-management-alpine
     container_name: antigravity_mq
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "0.0.0.0:5672:5672"
+      - "0.0.0.0:15672:15672"
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "check_running"]
       interval: 15s
@@ -45,7 +45,7 @@ services:
       dockerfile: Dockerfile
     container_name: antigravity_api
     ports:
-      - "8080:8088"
+      - "0.0.0.0:8080:8088"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/ai_code_review
@@ -111,15 +111,26 @@ services:
     depends_on:
       - prometheus
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: antigravity_frontend
+    environment:
+      - VITE_API_URL=/api
+    depends_on:
+      - api-service
+
   gateway:
     image: nginx:alpine
     container_name: antigravity_gateway
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     ports:
-      - "80:80"
+      - "0.0.0.0:80:80"
     depends_on:
       - api-service
+      - frontend
     extra_hosts:
       - "host.docker.internal:host-gateway"
 

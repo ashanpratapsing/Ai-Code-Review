@@ -89,10 +89,10 @@ public class AnalysisWorker {
             publishEvent(fileId, "COMPLETED");
         } catch (Exception e) {
             logger.error("Attempt failed for fileId: {}. Error: {}", fileId, e.getMessage());
-            // Release lock so it can be retried by the DLX
-            redisTemplate.delete(lockKey);
             // Throwing this exception tells RabbitMQ to reject the message (requeue=false), routing it to the DLX
             throw new org.springframework.amqp.AmqpRejectAndDontRequeueException(e);
+        } finally {
+            redisTemplate.delete(lockKey);
         }
     }
 
