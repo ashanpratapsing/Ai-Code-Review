@@ -25,8 +25,17 @@ export const useCodeAnalysis = (projectId?: number, existingFileId?: number) => 
         let fileId = existingFileId;
 
         if (!fileId) {
+          const extMap: Record<string, string> = {
+            javascript: 'js',
+            python: 'py',
+            java: 'java',
+            c: 'c',
+            cpp: 'cpp',
+            go: 'go'
+          };
+          const ext = extMap[language.toLowerCase()] || 'java';
           const uploadRes = await codeService.uploadCode({
-            name: `Analysis_${Date.now()}.${language === 'javascript' ? 'js' : language === 'python' ? 'py' : 'java'}`,
+            name: `Analysis_${Date.now()}.${ext}`,
             content: code,
             language,
             project: { id: projectId! },

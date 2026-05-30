@@ -89,7 +89,7 @@ public class RabbitMQConfig {
     public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
         final RabbitTemplate template = new RabbitTemplate(connectionFactory);
         template.setMessageConverter(jsonMessageConverter());
-        template.setReplyTimeout(30000L);
+        template.setReplyTimeout(60000L);
         return template;
     }
 }

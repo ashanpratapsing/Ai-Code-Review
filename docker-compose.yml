@@ -1,4 +1,12 @@
 services:
+  gcc-alpine:
+    build:
+      context: ./gcc-alpine
+      dockerfile: Dockerfile
+    image: gcc:alpine
+    container_name: antigravity_gcc_alpine
+    entrypoint: ["true"]
+
   postgres:
     image: ankane/pgvector:latest
     container_name: antigravity_db

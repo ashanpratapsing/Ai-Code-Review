@@ -65,6 +65,41 @@ if (input.length >= 2) {
 }
 `;
 
+const C_DEFAULT = `#include <stdio.h>
+
+int main() {
+    int a, b;
+    if (scanf("%d %d", &a, &b) == 2) {
+        printf("%d\\n", a + b);
+    }
+    return 0;
+}`;
+
+const CPP_DEFAULT = `#include <iostream>
+
+int main() {
+    int a, b;
+    if (std::cin >> a >> b) {
+        std::cout << a + b << std::endl;
+    }
+    return 0;
+}`;
+
+const GO_DEFAULT = `package main
+
+import (
+	"fmt"
+)
+
+func main() {
+	var a, b int
+	_, err := fmt.Scanf("%d %d", &a, &b)
+	if err == nil {
+		fmt.Println(a + b)
+	}
+}
+`;
+
 const DEFAULT_TEST_CASES: TestCase[] = [
   { id: 1, input: "5 10", expectedOutput: "15" },
   { id: 2, input: "100 250", expectedOutput: "350" }
@@ -86,6 +121,20 @@ const detectsInput = (codeText: string, lang: string): boolean => {
     return normalized.includes('readfilesync(') || 
            normalized.includes('readline') || 
            normalized.includes('process.stdin');
+  } else if (lang === 'c') {
+    return normalized.includes('scanf') || 
+           normalized.includes('getchar') || 
+           normalized.includes('fgets') || 
+           normalized.includes('stdin');
+  } else if (lang === 'cpp') {
+    return normalized.includes('cin') || 
+           normalized.includes('scanf') || 
+           normalized.includes('getline') || 
+           normalized.includes('stdin');
+  } else if (lang === 'go') {
+    return normalized.includes('fmt.scan') || 
+           normalized.includes('fmt.fscan') || 
+           normalized.includes('os.stdin');
   }
   return false;
 };
@@ -131,13 +180,26 @@ export const CodeInput: React.FC<CodeInputProps> = ({ onAnalyze, isLoading, init
   // Synchronize dynamic code templates when swapping language
   useEffect(() => {
     const currentCode = code.trim();
-    if (currentCode === '' || currentCode === JAVA_DEFAULT.trim() || currentCode === PYTHON_DEFAULT.trim() || currentCode === JS_DEFAULT.trim() || currentCode === '// Paste your code here...') {
+    if (currentCode === '' || 
+        currentCode === JAVA_DEFAULT.trim() || 
+        currentCode === PYTHON_DEFAULT.trim() || 
+        currentCode === JS_DEFAULT.trim() || 
+        currentCode === C_DEFAULT.trim() || 
+        currentCode === CPP_DEFAULT.trim() || 
+        currentCode === GO_DEFAULT.trim() || 
+        currentCode === '// Paste your code here...') {
       if (language === 'java') {
         setCode(JAVA_DEFAULT);
       } else if (language === 'python') {
         setCode(PYTHON_DEFAULT);
       } else if (language === 'javascript' || language === 'typescript') {
         setCode(JS_DEFAULT);
+      } else if (language === 'c') {
+        setCode(C_DEFAULT);
+      } else if (language === 'cpp') {
+        setCode(CPP_DEFAULT);
+      } else if (language === 'go') {
+        setCode(GO_DEFAULT);
       }
     }
   }, [language]);
@@ -147,7 +209,10 @@ export const CodeInput: React.FC<CodeInputProps> = ({ onAnalyze, isLoading, init
     const hasInput = detectsInput(code, language);
     const isDefaultCode = code.trim() === JAVA_DEFAULT.trim() || 
                           code.trim() === PYTHON_DEFAULT.trim() || 
-                          code.trim() === JS_DEFAULT.trim();
+                          code.trim() === JS_DEFAULT.trim() ||
+                          code.trim() === C_DEFAULT.trim() ||
+                          code.trim() === CPP_DEFAULT.trim() ||
+                          code.trim() === GO_DEFAULT.trim();
 
     const isDefaultTestCases = 
       testCases.length === 2 &&
@@ -172,6 +237,9 @@ export const CodeInput: React.FC<CodeInputProps> = ({ onAnalyze, isLoading, init
     { label: 'Java (Temurin 17)', value: 'java' },
     { label: 'Python (3.10)', value: 'python' },
     { label: 'JavaScript (Node 18)', value: 'javascript' },
+    { label: 'C (GCC 12)', value: 'c' },
+    { label: 'C++ (G++ 12)', value: 'cpp' },
+    { label: 'Go (1.20)', value: 'go' },
   ];
 
   const models = [

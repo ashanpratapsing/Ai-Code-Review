@@ -43,6 +43,12 @@ public class SemanticCodeAnalyzer {
                 meta.language = "JavaScript";
             } else if (lower.endsWith(".java")) {
                 meta.language = "Java";
+            } else if (lower.endsWith(".c")) {
+                meta.language = "C";
+            } else if (lower.endsWith(".cpp") || lower.endsWith(".cc") || lower.endsWith(".hpp") || lower.endsWith(".h")) {
+                meta.language = "CPP";
+            } else if (lower.endsWith(".go")) {
+                meta.language = "Go";
             }
         }
 

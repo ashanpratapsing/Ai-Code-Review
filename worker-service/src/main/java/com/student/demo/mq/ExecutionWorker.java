@@ -1,6 +1,7 @@
 package com.student.demo.mq;
 
 import com.student.demo.config.RabbitMQConfig;
+import com.student.demo.service.language.LanguageStrategy;
 import com.student.demo.dto.CodeExecutionDTO.*;
 import com.student.demo.entity.CodeExecution;
 import com.student.demo.entity.ExecutionLog;
@@ -27,17 +28,19 @@ import java.util.regex.Pattern;
 public class ExecutionWorker {
 
     private static final Logger logger = LoggerFactory.getLogger(ExecutionWorker.class);
-    private static final int MEMORY_LIMIT_MB = 128;
-    private static final int TIMEOUT_SECONDS = 15;
+    private static final int MEMORY_LIMIT_MB = 256;
+    private static final int TIMEOUT_SECONDS = 20;
 
     private final CodeExecutionRepository codeExecutionRepository;
     private final String sandboxVolumeName;
+    private final List<LanguageStrategy> languageStrategies;
 
-    public ExecutionWorker(CodeExecutionRepository codeExecutionRepository) {
+    public ExecutionWorker(CodeExecutionRepository codeExecutionRepository, List<LanguageStrategy> languageStrategies) {
         this.codeExecutionRepository = codeExecutionRepository;
+        this.languageStrategies = languageStrategies;
         String vol = System.getenv("SANDBOX_VOLUME_NAME");
         this.sandboxVolumeName = (vol == null || vol.isEmpty()) ? "sandbox_data" : vol;
-        logger.info("Initialized ExecutionWorker with sandboxVolumeName: {}", this.sandboxVolumeName);
+        logger.info("Initialized ExecutionWorker with sandboxVolumeName: {} and strategies count: {}", this.sandboxVolumeName, languageStrategies.size());
     }
 
     @RabbitListener(queues = RabbitMQConfig.EXECUTION_QUEUE_NAME)
@@ -92,31 +95,14 @@ public class ExecutionWorker {
             tempDir = execDir.toPath();
             logger.info("Created isolated workspace: {}", tempDir.toAbsolutePath());
 
-            String filename = "";
-            String dockerImage = "";
-            String runCmd = "";
-
-            if ("JAVA".equals(language)) {
-                String className = "Main";
-                Pattern pattern = Pattern.compile("public\\s+class\\s+(\\w+)");
-                Matcher matcher = pattern.matcher(code);
-                if (matcher.find()) {
-                    className = matcher.group(1);
-                }
-                filename = className + ".java";
-                dockerImage = "eclipse-temurin:17-alpine";
-                runCmd = "javac " + filename + " && java " + className + " < input.txt";
-            } else if ("PYTHON".equals(language)) {
-                filename = "solution.py";
-                dockerImage = "python:3.10-alpine";
-                runCmd = "python solution.py < input.txt";
-            } else if ("JAVASCRIPT".equals(language) || "JS".equals(language)) {
-                filename = "script.js";
-                dockerImage = "node:18-alpine";
-                runCmd = "node script.js < input.txt";
-            } else {
+            LanguageStrategy strategy = getStrategy(language);
+            if (strategy == null) {
                 throw new IllegalArgumentException("Unsupported language: " + language);
             }
+
+            String filename = strategy.getFilename(code);
+            String dockerImage = strategy.getDockerImage();
+            String runCmd = strategy.getRunCommand(filename);
 
             Path codeFilePath = tempDir.resolve(filename);
             Files.writeString(codeFilePath, code);
@@ -128,13 +114,14 @@ public class ExecutionWorker {
             response.setStatus("SUCCESS");
             List<TestCaseResult> results = new ArrayList<>();
 
-            if ("JAVA".equals(language)) {
-                // Java compilation step using hardened docker container
+            if (strategy.hasCompilationStep()) {
+                String compileCmd = strategy.getCompileCommand(filename);
+                // Compile step using hardened docker container running sh -c compileCmd
                 List<String> compileArgs = List.of(
                         "docker", "run", "--rm",
                         "--network", "none",
-                        "--memory", "128m",
-                        "--cpus", "0.5",
+                        "--memory", "256m",
+                        "--cpus", "1.0",
                         "--user", "1000:1000",
                         "--read-only",
                         "--tmpfs", "/tmp",
@@ -144,10 +131,10 @@ public class ExecutionWorker {
                         "-v", this.sandboxVolumeName + ":/sandbox",
                         "-w", "/sandbox/exec_" + execId,
                         dockerImage,
-                        "javac", filename
+                        "sh", "-c", compileCmd
                 );
 
-                logger.info("Compiling Java code for job ID: {}", execId);
+                logger.info("Compiling {} code for job ID: {}", language, execId);
 
                 File compileStdout = new File(tempDir.toFile(), "compile_stdout.txt");
                 File compileStderr = new File(tempDir.toFile(), "compile_stderr.txt");
@@ -158,26 +145,23 @@ public class ExecutionWorker {
                 compilePb.redirectError(compileStderr);
 
                 Process compileProcess = compilePb.start();
-                boolean compileCompleted = compileProcess.waitFor(30, TimeUnit.SECONDS);
+                boolean compileCompleted = compileProcess.waitFor(45, TimeUnit.SECONDS);
 
                 if (!compileCompleted) {
                     compileProcess.destroyForcibly();
                     response.setStatus("COMPILE_ERROR");
-                    response.setCompileError("Compilation timed out (limit: 30s).");
+                    response.setCompileError("Compilation timed out (limit: 45s).");
                     return response;
                 }
 
+                int compileExitCode = compileProcess.exitValue();
                 String compileErrors = Files.readString(compileStderr.toPath()).trim();
-                String className = filename.substring(0, filename.length() - 5);
-                File classFile = new File(tempDir.toFile(), className + ".class");
 
-                if (!classFile.exists()) {
+                if (compileExitCode != 0) {
                     response.setStatus("COMPILE_ERROR");
-                    response.setCompileError(compileErrors.isEmpty() ? "Compilation failed without detailed error output." : compileErrors);
+                    response.setCompileError(compileErrors.isEmpty() ? "Compilation failed with exit code " + compileExitCode : compileErrors);
                     return response;
                 }
-                
-                runCmd = "java " + className + " < input.txt";
             }
 
             if (testCases != null && !testCases.isEmpty()) {
@@ -225,8 +209,8 @@ public class ExecutionWorker {
             List<String> cmdArgs = List.of(
                     "docker", "run", "--rm",
                     "--network", "none",
-                    "--memory", "128m",
-                    "--cpus", "0.5",
+                    "--memory", "256m",
+                    "--cpus", "1.0",
                     "--user", "1000:1000",
                     "--read-only",
                     "--tmpfs", "/tmp",
@@ -344,6 +328,19 @@ public class ExecutionWorker {
         return request.getTestCases().stream()
                 .filter(tc -> tc.getId() == caseId)
                 .map(TestCase::getInput)
+                .findFirst()
+                .orElse(null);
+    }
+
+    private LanguageStrategy getStrategy(String language) {
+        if (language == null || languageStrategies == null) return null;
+        String upper = language.toUpperCase().trim();
+        if ("JS".equals(upper)) {
+            upper = "JAVASCRIPT";
+        }
+        final String searchLang = upper;
+        return languageStrategies.stream()
+                .filter(s -> s.getLanguage().equalsIgnoreCase(searchLang))
                 .findFirst()
                 .orElse(null);
     }

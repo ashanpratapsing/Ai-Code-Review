@@ -1,6 +1,7 @@
 package com.student.demo.service;
 
 import com.student.demo.entity.CodeFile;
+import com.student.demo.service.language.LanguageStrategy;
 import com.student.demo.entity.Metrics;
 import com.student.demo.entity.AnalysisStatus;
 import com.student.demo.dto.AnalysisResponse;
@@ -35,6 +36,9 @@ public class CodeAnalyzerService {
 
     @Autowired
     private org.springframework.data.redis.core.StringRedisTemplate redisTemplate;
+
+    @Autowired
+    private List<LanguageStrategy> languageStrategies;
 
     private final ObjectMapper objectMapper = new ObjectMapper()
             .configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -80,6 +84,10 @@ public class CodeAnalyzerService {
 
         try {
             SemanticCodeAnalyzer.CodeMetadata meta = SemanticCodeAnalyzer.analyze(code, codeFile.getName());
+            LanguageStrategy strategy = getStrategy(meta.language);
+            if (strategy != null) {
+                strategy.analyzeMetadata(code, meta);
+            }
             String prompt = buildPrompt(code, executionContext, meta);
             String aiResult;
             try {
@@ -143,6 +151,15 @@ public class CodeAnalyzerService {
             sb.append("\nTestcase Results: ").append(executionContext.get("executionResults"));
             
             sb.append("\n\n[INSTRUCTION] Use the sandbox execution results above. If the execution failed (e.g. status is COMPILE_ERROR or RUNTIME_ERROR), explain the exact failure reason, identify the failing line number, and explain how to fix it. If execution was successful, validate that the output matches the expected behavior and explain TreeMap/algorithm ordering or runtime metrics.");
+        }
+
+        LanguageStrategy strategy = getStrategy(meta.language);
+        if (strategy != null) {
+            String specPrompt = strategy.getLanguageSpecificPrompt();
+            if (specPrompt != null && !specPrompt.isBlank()) {
+                sb.append("\n\n=== ").append(strategy.getLanguage()).append(" SPECIFIC INSTRUCTIONS ===\n");
+                sb.append(specPrompt);
+            }
         }
         
         return sb.toString();
@@ -597,6 +614,19 @@ public class CodeAnalyzerService {
         } catch (Exception e) {
             throw new RuntimeException("Failed to construct local analysis JSON", e);
         }
+    }
+
+    private LanguageStrategy getStrategy(String language) {
+        if (language == null || languageStrategies == null) return null;
+        String upper = language.toUpperCase().trim();
+        if ("JS".equals(upper)) {
+            upper = "JAVASCRIPT";
+        }
+        final String searchLang = upper;
+        return languageStrategies.stream()
+                .filter(s -> s.getLanguage().equalsIgnoreCase(searchLang))
+                .findFirst()
+                .orElse(null);
     }
 
     private void debugLog(String message) {
