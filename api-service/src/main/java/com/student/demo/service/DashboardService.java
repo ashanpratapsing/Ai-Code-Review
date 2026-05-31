@@ -20,6 +20,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.Collections;
 
 @Service
 public class DashboardService {
@@ -70,6 +72,106 @@ public class DashboardService {
         summary.setActivityData(buildActivity(userId));
         summary.setIssueDistribution(buildIssueDistribution(userId, completedAnalyses, failedExecutions));
         summary.setRecentActivity(buildRecentActivity(userId));
+
+        // Calculate contribution heatmap and streaks
+        LocalDateTime oneYearAgo = LocalDateTime.now().minusDays(365).withHour(0).withMinute(0).withSecond(0);
+        List<AnalysisHistory> oneYearHistory = historyRepository.findRecentByUserId(userId, oneYearAgo);
+        List<CodeExecution> oneYearExecutions = codeExecutionRepository.findRecentByUserId(userId, oneYearAgo);
+
+        Map<LocalDate, Map<String, Object>> dailyActivity = new HashMap<>();
+        long totalContributions = 0;
+
+        for (AnalysisHistory h : oneYearHistory) {
+            LocalDate date = h.getCreatedAt().toLocalDate();
+            dailyActivity.computeIfAbsent(date, d -> {
+                Map<String, Object> map = new HashMap<>();
+                map.put("total", 0);
+                map.put("executions", 0);
+                map.put("reviews", 0);
+                return map;
+            });
+            Map<String, Object> stats = dailyActivity.get(date);
+            stats.put("reviews", (int) stats.get("reviews") + 1);
+            stats.put("total", (int) stats.get("total") + 1);
+            totalContributions++;
+        }
+
+        for (CodeExecution e : oneYearExecutions) {
+            LocalDate date = e.getCreatedAt().toLocalDate();
+            dailyActivity.computeIfAbsent(date, d -> {
+                Map<String, Object> map = new HashMap<>();
+                map.put("total", 0);
+                map.put("executions", 0);
+                map.put("reviews", 0);
+                return map;
+            });
+            Map<String, Object> stats = dailyActivity.get(date);
+            stats.put("executions", (int) stats.get("executions") + 1);
+            stats.put("total", (int) stats.get("total") + 1);
+            totalContributions++;
+        }
+
+        // Calculate streaks
+        int currentStreak = 0;
+        int longestStreak = 0;
+        int tempStreak = 0;
+        LocalDate today = LocalDate.now();
+        LocalDate yesterday = today.minusDays(1);
+
+        Set<LocalDate> activeDays = dailyActivity.keySet();
+
+        List<LocalDate> sortedActiveDays = new ArrayList<>(activeDays);
+        Collections.sort(sortedActiveDays);
+
+        if (!sortedActiveDays.isEmpty()) {
+            longestStreak = 1;
+            tempStreak = 1;
+            for (int i = 1; i < sortedActiveDays.size(); i++) {
+                if (sortedActiveDays.get(i).equals(sortedActiveDays.get(i - 1).plusDays(1))) {
+                    tempStreak++;
+                } else if (!sortedActiveDays.get(i).equals(sortedActiveDays.get(i - 1))) {
+                    longestStreak = Math.max(longestStreak, tempStreak);
+                    tempStreak = 1;
+                }
+            }
+            longestStreak = Math.max(longestStreak, tempStreak);
+        }
+
+        LocalDate currentDay = today;
+        if (activeDays.contains(currentDay)) {
+            currentStreak = 0;
+            while (activeDays.contains(currentDay)) {
+                currentStreak++;
+                currentDay = currentDay.minusDays(1);
+            }
+        } else if (activeDays.contains(yesterday)) {
+            currentStreak = 0;
+            currentDay = yesterday;
+            while (activeDays.contains(currentDay)) {
+                currentStreak++;
+                currentDay = currentDay.minusDays(1);
+            }
+        }
+
+        // Weekly consistency (percentage of days active in the last 7 days including today)
+        int activeLast7Days = 0;
+        for (int i = 0; i < 7; i++) {
+            if (activeDays.contains(today.minusDays(i))) {
+                activeLast7Days++;
+            }
+        }
+        double weeklyConsistency = (activeLast7Days * 100.0) / 7.0;
+
+        Map<String, Map<String, Object>> calendarMap = new HashMap<>();
+        for (Map.Entry<LocalDate, Map<String, Object>> entry : dailyActivity.entrySet()) {
+            calendarMap.put(entry.getKey().toString(), entry.getValue());
+        }
+
+        summary.setCurrentStreak(currentStreak);
+        summary.setLongestStreak(longestStreak);
+        summary.setTotalContributions(totalContributions);
+        summary.setWeeklyConsistency(Math.round(weeklyConsistency * 10.0) / 10.0);
+        summary.setContributionCalendar(calendarMap);
 
         return summary;
     }

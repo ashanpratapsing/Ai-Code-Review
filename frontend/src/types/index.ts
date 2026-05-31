@@ -91,6 +91,11 @@ export interface DashboardSummary {
   activityData: { name: string; issues: number; files: number }[];
   issueDistribution: { name: string; count: number }[];
   recentActivity?: { type: string; title: string; status?: string; score?: number; at: string }[];
+  currentStreak: number;
+  longestStreak: number;
+  totalContributions: number;
+  weeklyConsistency: number;
+  contributionCalendar: Record<string, { total: number; executions: number; reviews: number }>;
 }
 
 export interface HistoryItem {

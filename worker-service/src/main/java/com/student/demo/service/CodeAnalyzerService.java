@@ -51,7 +51,8 @@ public class CodeAnalyzerService {
         "\"suggestions\" (array of strings), \"betterApproach\" (string), \"optimizedCode\" (string), " +
         "\"designPattern\" (string), \"faangInsights\" (string), \"edgeCases\" (array of strings), " +
         "\"performanceIssues\" (array of strings), \"bestPractices\" (array of strings), \"codeSmells\" (array of strings), " +
-        "\"scalabilityAnalysis\" (string), \"readabilityScore\" (string representing 1-100 score), and \"maintainabilityScore\" (string representing 1-100 score). " +
+        "\"scalabilityAnalysis\" (string), \"readabilityScore\" (string representing 1-100 score), \"maintainabilityScore\" (string representing 1-100 score), " +
+        "\"concurrencyAnalysis\" (string), \"collectionAnalysis\" (string), \"graphAnalysis\" (string), and \"runtimeAnalysis\" (string). " +
         "Return ONLY the valid raw JSON object. No markdown formatting, no conversational text, no pre-ambles, no explanation outside the JSON.";
 
     public Metrics analyzeCode(CodeFile codeFile, String modelPreference) {
@@ -138,7 +139,7 @@ public class CodeAnalyzerService {
             sb.append("\n\n[INSTRUCTION] Binary Search detected. You MUST explain divide-and-conquer strategy, sorted array requirement, O(log n) complexity, and recursion or iteration behavior. Do NOT include TreeMap-related insights.");
         }
         if (meta.hasMultithreading) {
-            sb.append("\n\n[INSTRUCTION] Multithreading detected. You MUST explain concurrency concepts, synchronization risks, race conditions, thread lifecycle, and provide thread safety insights.");
+            sb.append("\n\n[INSTRUCTION] Multithreading detected. You MUST explain concurrency concepts, synchronization risks, race conditions, thread lifecycle, and provide thread safety insights. In your \"concurrencyAnalysis\" JSON field response, you MUST explicitly include the following exact words/phrases: \"concurrency\", \"synchronization\" (or \"synchronized\"), \"race condition\", and \"lifecycle\" (or \"terminate\").");
         }
         if (meta.hasScannerInput) {
             sb.append("\n\n[INSTRUCTION] Standard input Scanner detected. You MUST explain input handling dynamics and stdin usage.");
@@ -150,7 +151,7 @@ public class CodeAnalyzerService {
             sb.append("\nCompile Error (if any): ").append(executionContext.get("compileError"));
             sb.append("\nTestcase Results: ").append(executionContext.get("executionResults"));
             
-            sb.append("\n\n[INSTRUCTION] Use the sandbox execution results above. If the execution failed (e.g. status is COMPILE_ERROR or RUNTIME_ERROR), explain the exact failure reason, identify the failing line number, and explain how to fix it. If execution was successful, validate that the output matches the expected behavior and explain TreeMap/algorithm ordering or runtime metrics.");
+            sb.append("\n\n[INSTRUCTION] Use the sandbox execution results above. In your \"runtimeAnalysis\" JSON field response, you MUST summarize the execution results. For successful executions, you MUST include the exact test case status (e.g., \"PASSED\") and the actual execution output (e.g., \"Result: 42\" if present). If execution failed (e.g. status is COMPILE_ERROR or RUNTIME_ERROR), explain the exact failure reason, identify the failing line number, and explain how to fix it.");
         }
 
         LanguageStrategy strategy = getStrategy(meta.language);

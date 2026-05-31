@@ -14,6 +14,11 @@ public class DashboardSummaryDTO {
     private List<Map<String, Object>> activityData;
     private List<Map<String, Object>> issueDistribution;
     private List<Map<String, Object>> recentActivity;
+    private int currentStreak;
+    private int longestStreak;
+    private long totalContributions;
+    private double weeklyConsistency;
+    private Map<String, Map<String, Object>> contributionCalendar;
 
     public long getTotalProjects() { return totalProjects; }
     public void setTotalProjects(long totalProjects) { this.totalProjects = totalProjects; }
@@ -35,4 +40,14 @@ public class DashboardSummaryDTO {
     public void setIssueDistribution(List<Map<String, Object>> issueDistribution) { this.issueDistribution = issueDistribution; }
     public List<Map<String, Object>> getRecentActivity() { return recentActivity; }
     public void setRecentActivity(List<Map<String, Object>> recentActivity) { this.recentActivity = recentActivity; }
+    public int getCurrentStreak() { return currentStreak; }
+    public void setCurrentStreak(int currentStreak) { this.currentStreak = currentStreak; }
+    public int getLongestStreak() { return longestStreak; }
+    public void setLongestStreak(int longestStreak) { this.longestStreak = longestStreak; }
+    public long getTotalContributions() { return totalContributions; }
+    public void setTotalContributions(long totalContributions) { this.totalContributions = totalContributions; }
+    public double getWeeklyConsistency() { return weeklyConsistency; }
+    public void setWeeklyConsistency(double weeklyConsistency) { this.weeklyConsistency = weeklyConsistency; }
+    public Map<String, Map<String, Object>> getContributionCalendar() { return contributionCalendar; }
+    public void setContributionCalendar(Map<String, Map<String, Object>> contributionCalendar) { this.contributionCalendar = contributionCalendar; }
 }
