@@ -36,7 +36,7 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/auth/**", "/actuator/health", "/actuator/info", "/swagger-ui/**", "/v3/api-docs/**", "/error", "/").permitAll()
+                .requestMatchers("/auth/**", "/actuator/health", "/actuator/info", "/actuator/prometheus", "/swagger-ui/**", "/v3/api-docs/**", "/error", "/").permitAll()
                 .requestMatchers("/debug/**").denyAll()
                 .anyRequest().authenticated()
             )
