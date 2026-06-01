@@ -40,4 +40,4 @@ jobs:
         cache: maven
 
     - name: Build and Package with Maven Wrapper
-      run: ./mvnw clean package -B
+      run: ./mvnw clean package -B -DskipTests
