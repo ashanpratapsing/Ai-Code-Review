@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { ThemeToggle } from '../components/ThemeToggle';
+import { AxiomSplash } from '../components/AxiomSplash';
+import { AxiomLogo } from '../components/AxiomLogo';
 import { 
   Terminal as TerminalIcon, Cpu, Layers, Activity, Check, Code, 
   ArrowRight, Lock, Shield, RefreshCw, Play, Zap, BarChart2, 
@@ -75,6 +77,9 @@ export const LandingPage = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user } = useAuth();
   const [showToast, setShowToast] = useState(false);
+  const [showSplash, setShowSplash] = useState(() => {
+    return sessionStorage.getItem('axiom_splash_shown') !== 'true';
+  });
 
   // Terminal state
   const [langIndex, setLangIndex] = useState(0);
@@ -199,6 +204,14 @@ export const LandingPage = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground relative overflow-hidden selection:bg-primary/30 selection:text-foreground">
+      {showSplash && (
+        <AxiomSplash
+          onComplete={() => {
+            setShowSplash(false);
+            sessionStorage.setItem('axiom_splash_shown', 'true');
+          }}
+        />
+      )}
       {/* Decorative Radial Background Glows */}
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-0">
         <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[150px] dark:bg-primary/5" />
@@ -211,13 +224,8 @@ export const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-8">
             {/* Platform Brand Logo */}
-            <Link to="/" className="flex items-center gap-2.5 font-bold text-xl tracking-tight hover:opacity-90 transition-opacity">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-primary to-violet-500 flex items-center justify-center border border-primary/20 shadow-md">
-                <TerminalIcon className="text-white w-4.5 h-4.5" />
-              </div>
-              <span className="bg-gradient-to-r from-foreground via-foreground to-muted-foreground bg-clip-text text-transparent font-extrabold">
-                Axiom
-              </span>
+            <Link to="/" className="hover:opacity-90 transition-opacity">
+              <AxiomLogo size="sm" showText={true} />
             </Link>
 
             {/* Desktop Navbar Links */}
@@ -647,10 +655,7 @@ export const LandingPage = () => {
       <footer className="border-t border-border/40 bg-muted/20 py-8 relative z-10 text-center text-xs text-muted-foreground">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-primary to-violet-500 flex items-center justify-center border border-primary/20 text-white">
-              <TerminalIcon className="w-3 h-3 text-white" />
-            </div>
-            <span className="font-bold text-foreground">Axiom Engineering</span>
+            <AxiomLogo size="xs" showText={true} glow={false} />
           </div>
           <p>© 2026 Axiom. Hardened compile & runtime execution sandbox. All rights reserved.</p>
           <div className="flex items-center gap-4">

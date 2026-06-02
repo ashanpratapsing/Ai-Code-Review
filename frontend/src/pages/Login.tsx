@@ -5,6 +5,8 @@ import { Button, Input, Card } from '../components/ui/core';
 import { Terminal, Lock, Mail, ArrowRight, Globe, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { oauthUrl } from '../services/api';
+import { AxiomLogo } from '../components/AxiomLogo';
+
 export const Login = () => {
   const [isLogin, setIsLogin] = useState(window.location.pathname !== '/signup');
   
@@ -58,11 +60,11 @@ export const Login = () => {
       >
         <Card className="p-8 border-[var(--login-card-border)] bg-[var(--login-card-bg)] backdrop-blur-2xl">
           <div className="flex flex-col items-center mb-8">
-            <div className="w-16 h-16 bg-[var(--login-glow-1)] rounded-2xl flex items-center justify-center border border-[var(--login-card-border)] mb-4">
-              <Terminal className="text-primary w-8 h-8" />
+            <div className="mb-5">
+              <AxiomLogo size="lg" showText={false} />
             </div>
-            <h2 className="text-3xl font-bold tracking-tight">{isLogin ? 'Welcome Back' : 'Create Account'}</h2>
-            <p className="text-muted-foreground mt-2">{isLogin ? 'Sign in to your AI review dashboard' : 'Join the AI Review platform'}</p>
+            <h2 className="text-3xl font-bold tracking-tight">{isLogin ? 'Welcome back to Axiom' : 'Create Account'}</h2>
+            <p className="text-muted-foreground mt-2 text-center text-sm">{isLogin ? 'Sign in to your code execution sandbox' : 'Join the Axiom developer platform'}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">

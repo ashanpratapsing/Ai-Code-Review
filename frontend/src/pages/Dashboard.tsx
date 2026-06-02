@@ -17,6 +17,7 @@ import {
 import { Shield, FileCode, AlertTriangle, Zap, TrendingUp, Clock, Calendar, Flame, Trophy, Activity, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
+import { AxiomLogo } from '../components/AxiomLogo';
 
 const StatCard = ({
   title,
@@ -114,7 +115,12 @@ export const Dashboard = () => {
   }, [heatmapDays]);
 
   if (isLoading) {
-    return <motion.div className="p-8 text-center text-muted-foreground animate-pulse">Loading your analytics...</motion.div>;
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+        <AxiomLogo size="md" showText={false} className="animate-pulse" />
+        <span className="text-sm font-medium text-muted-foreground animate-pulse">Loading intelligence telemetry...</span>
+      </div>
+    );
   }
 
   const getCellColor = (count: number) => {

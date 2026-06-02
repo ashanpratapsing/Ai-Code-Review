@@ -4,6 +4,7 @@ import { LayoutDashboard, FolderKanban, Terminal, LogOut, ChevronRight, Activity
 import { useAuth } from '../context/AuthContext';
 import { cn, Button } from '../components/ui/core';
 import { ThemeToggle } from '../components/ThemeToggle';
+import { AxiomLogo } from '../components/AxiomLogo';
 
 const SidebarItem = ({ to, icon: Icon, label }: { to: string; icon: any; label: string }) => (
   <NavLink
@@ -34,11 +35,8 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     <div className="flex h-screen bg-background overflow-hidden">
       {/* Sidebar */}
       <aside className="w-64 border-r border-border bg-card/30 backdrop-blur-xl flex flex-col">
-        <div className="p-6 flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center border border-primary/30">
-            <Terminal className="text-primary w-6 h-6" />
-          </div>
-          <h1 className="text-xl font-bold tracking-tight">AI Review</h1>
+        <div className="p-6">
+          <AxiomLogo size="sm" showText={true} />
         </div>
 
         <nav className="flex-1 px-4 space-y-2 mt-4">
