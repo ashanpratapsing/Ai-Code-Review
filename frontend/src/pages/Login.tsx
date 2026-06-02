@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Button, Input, Card } from '../components/ui/core';
@@ -6,7 +6,12 @@ import { Terminal, Lock, Mail, ArrowRight, Globe, AlertCircle } from 'lucide-rea
 import { motion } from 'framer-motion';
 import { oauthUrl } from '../services/api';
 export const Login = () => {
-  const [isLogin, setIsLogin] = useState(true);
+  const [isLogin, setIsLogin] = useState(window.location.pathname !== '/signup');
+  
+  useEffect(() => {
+    setIsLogin(window.location.pathname !== '/signup');
+  }, [window.location.pathname]);
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

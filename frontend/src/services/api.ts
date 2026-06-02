@@ -27,7 +27,11 @@ api.interceptors.response.use(
         await api.post('/auth/refresh');
         return api(originalRequest);
       } catch {
-        if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
+        const publicPaths = ['/', '/login', '/signup'];
+        if (
+          typeof window !== 'undefined' &&
+          !publicPaths.includes(window.location.pathname)
+        ) {
           window.location.href = '/login';
         }
         return Promise.reject(error);

@@ -27,14 +27,16 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         <div className="min-h-screen bg-[#0d1117] flex items-center justify-center p-8 text-center">
           <div className="max-w-md bg-[#161b22] border border-red-900/50 p-10 rounded-2xl shadow-2xl">
-            <h1 className="text-2xl font-bold text-red-500 mb-4 uppercase italic">Critical System Failure</h1>
-            <p className="text-gray-400 mb-8">The application encountered an unexpected error. Please refresh the browser or contact system admin.</p>
-            <button 
-              onClick={() => window.location.reload()}
-              className="bg-red-600 hover:bg-red-500 text-white px-8 py-3 rounded-xl font-bold transition-all"
-            >
-              Force Restart
-            </button>
+            <h1 className="text-2xl font-bold text-red-500 mb-4 uppercase italic text-center">Critical System Failure</h1>
+            <p className="text-gray-400 mb-8 text-center">The application encountered an unexpected error. Please refresh the browser or contact system admin.</p>
+            <div className="flex justify-center">
+              <button 
+                onClick={() => window.location.reload()}
+                className="bg-red-600 hover:bg-red-500 text-white px-8 py-3 rounded-xl font-bold transition-all cursor-pointer"
+              >
+                Force Restart
+              </button>
+            </div>
           </div>
         </div>
       );

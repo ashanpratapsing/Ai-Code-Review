@@ -6,6 +6,7 @@ import { ToastProvider } from './context/ToastContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { Layout } from './layouts/Layout';
 import { Login } from './pages/Login';
+import { LandingPage } from './pages/LandingPage';
 import { Dashboard } from './pages/Dashboard';
 import { Projects } from './pages/Projects';
 import { CodeReview } from './pages/CodeReview';
@@ -39,7 +40,9 @@ function App() {
             <AuthProvider>
             <BrowserRouter>
             <Routes>
+              <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Login />} />
               
               <Route path="/dashboard" element={
                 <ProtectedRoute>
@@ -65,7 +68,7 @@ function App() {
                 </ProtectedRoute>
               } />
 
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </BrowserRouter>
         </AuthProvider>
